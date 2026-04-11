@@ -210,10 +210,10 @@ class DashboardScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               "Let's check your Financial Insight – overspending on $overCat!",
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: AppTheme.textDark),
+                                  color: Theme.of(context).textTheme.bodyLarge?.color),
                             ),
                           ),
                           const Icon(Icons.chevron_right_rounded,
@@ -364,9 +364,9 @@ class _TopCategoryRow extends StatelessWidget {
                       color: AppTheme.textMuted,
                       fontWeight: FontWeight.w500)),
               Text(cat.label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700,
-                      color: AppTheme.textDark)),
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
             ],
           ),
           const Spacer(),
@@ -438,10 +438,10 @@ class _TransactionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(cat.label,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: AppTheme.textDark)),
+                          color: Theme.of(context).textTheme.bodyLarge?.color)),
                   const SizedBox(height: 2),
                   Text(
                     expense.note?.isNotEmpty == true
@@ -492,7 +492,7 @@ class _EmptyState extends StatelessWidget {
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textDark)),
+                  color: AppTheme.primary)),
           const SizedBox(height: 8),
           const Text(
             'Tap the + button to add\nyour first expense',

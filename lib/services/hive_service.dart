@@ -5,6 +5,7 @@ import '../models/budget.dart';
 class HiveService {
   static const String _expenseBoxName = 'expenses';
   static const String _budgetBoxName = 'budgets';
+  static const String _settingsBoxName = 'settings';
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -12,6 +13,17 @@ class HiveService {
     Hive.registerAdapter(BudgetAdapter());
     await Hive.openBox<Expense>(_expenseBoxName);
     await Hive.openBox<Budget>(_budgetBoxName);
+    await Hive.openBox(_settingsBoxName);
+  }
+
+  Box get _settingsBox => Hive.box(_settingsBoxName);
+
+  Future<void> saveThemeMode(String mode) async {
+    await _settingsBox.put('themeMode', mode);
+  }
+
+  String getThemeMode() {
+    return _settingsBox.get('themeMode', defaultValue: 'system');
   }
 
   // ── Expense CRUD ──────────────────────────────────────────────────────────

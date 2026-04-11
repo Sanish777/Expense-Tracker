@@ -139,8 +139,8 @@ class InsightsScreen extends StatelessWidget {
                                   fontSize: 14)),
                           Text(
                             '${h['days']} days this month · Rs. ${(h['total'] as double).toStringAsFixed(0)} total',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.white54),
+                            style: TextStyle(
+                                fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
                           ),
                         ],
                       ),

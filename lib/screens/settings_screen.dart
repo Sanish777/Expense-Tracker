@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/budget_provider.dart';
 import '../providers/expense_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -15,7 +16,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _monthlyController = TextEditingController();
   final _dailyController = TextEditingController();
-  bool _darkMode = false;
 
   @override
   void initState() {
@@ -214,28 +214,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     offset: const Offset(0, 2)),
               ],
             ),
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.textDark.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.dark_mode_rounded,
-                    color: AppTheme.textDark, size: 20),
-              ),
-              title: const Text('Dark Mode',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14,
-                      color: AppTheme.textDark)),
-              subtitle: const Text('Toggle dark/light theme',
-                  style:
-                      TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-              value: _darkMode,
-              activeColor: AppTheme.primary,
-              onChanged: (v) => setState(() => _darkMode = v),
+            child: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                        color: AppTheme.primary, size: 20),
+                  ),
+                  title: Text('Dark Mode',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14,
+                          color: Theme.of(context).textTheme.bodyLarge?.color)),
+                  subtitle: Text('Toggle dark/light theme',
+                      style:
+                          TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                  value: isDark,
+                  activeColor: AppTheme.primary,
+                  onChanged: (v) {
+                    themeProvider.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
+                  },
+                );
+              },
             ),
           ).animate().fadeIn(delay: 250.ms),
 
@@ -266,11 +274,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Icon(Icons.notifications_active_outlined,
                     color: AppTheme.primary, size: 20),
               ),
-              title: const Text('Test Weekly Summary',
+              title: Text('Test Weekly Summary',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: AppTheme.textDark)),
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
               subtitle: const Text('Show a notification with your weekly spend',
                   style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               trailing: const Icon(Icons.chevron_right_rounded,
@@ -394,9 +402,9 @@ class _SettingsCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 14,
-                      color: AppTheme.textDark)),
+                      color: Theme.of(context).textTheme.bodyLarge?.color)),
             ],
           ),
           const SizedBox(height: 12),

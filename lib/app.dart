@@ -8,6 +8,7 @@ import '../screens/insights_screen.dart';
 import '../screens/settings_screen.dart';
 import '../providers/expense_provider.dart';
 import '../providers/budget_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 
 class SpendWiseApp extends StatelessWidget {
@@ -15,26 +16,17 @@ class SpendWiseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-            create: (_) => ExpenseProvider(
-                context.read())),
-        ChangeNotifierProvider(
-            create: (_) => BudgetProvider(context.read())),
-      ],
-      child: Consumer<BudgetProvider>(
-        builder: (context, budget, _) {
-          return MaterialApp(
-            title: 'SpendWise AI',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.light,
-            home: const _MainShell(),
-          );
-        },
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          title: 'SpendWise AI',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeProvider.themeMode,
+          home: const _MainShell(),
+        );
+      },
     );
   }
 }

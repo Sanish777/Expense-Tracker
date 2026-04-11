@@ -74,8 +74,8 @@ class ExpenseProvider extends ChangeNotifier {
       if (budget.dailyLimit > 0 && dailyTotal > budget.dailyLimit) {
         await NotificationService.showBudgetAlert(
           title: 'Daily Limit Exceeded! ⚠️',
-          body: 'You've spent Rs. ${dailyTotal.toStringAsFixed(0)} today, '
-              'exceeding your Rs. ${budget.dailyLimit.toStringAsFixed(0)} daily limit.',
+          body: "You've spent Rs. ${dailyTotal.toStringAsFixed(0)} today, "
+              "exceeding your Rs. ${budget.dailyLimit.toStringAsFixed(0)} daily limit.",
         );
       }
 
@@ -84,8 +84,8 @@ class ExpenseProvider extends ChangeNotifier {
         if (newTotal > budget.monthlyLimit) {
           await NotificationService.showBudgetAlert(
             title: 'Monthly Budget Exceeded! 🚨',
-            body: 'You've spent Rs. ${newTotal.toStringAsFixed(0)} – '
-                'over your Rs. ${budget.monthlyLimit.toStringAsFixed(0)} limit.',
+            body: "You've spent Rs. ${newTotal.toStringAsFixed(0)} – "
+                "over your Rs. ${budget.monthlyLimit.toStringAsFixed(0)} limit.",
           );
         } else if (newTotal > budget.monthlyLimit * 0.8) {
           await NotificationService.showBudgetAlert(

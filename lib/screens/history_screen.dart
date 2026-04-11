@@ -87,10 +87,10 @@ class HistoryScreen extends StatelessWidget {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Try a different filter',
                           style: TextStyle(
-                              color: Colors.white54, fontSize: 13),
+                              color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13),
                         ),
                       ],
                     ),
