@@ -227,7 +227,19 @@ flutter build apk --release
 flutter build ios --release
 ```
 
-### 5. Regenerate Hive Adapters *(only if you modify models)*
+### 5. Run Release Build on Device After Changes
+
+To test changes in a fully optimized production environment (especially useful for UI/Animation adjustments):
+
+```bash
+# View attached devices and get your device ID
+flutter devices
+
+# Run on specific device in release mode (iOS or Android)
+flutter run -d <DEVICE_ID> --release
+```
+
+### 6. Regenerate Hive Adapters *(only if you modify models)*
 
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
