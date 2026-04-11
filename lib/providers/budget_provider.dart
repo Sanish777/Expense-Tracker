@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/budget.dart';
-import '../services/hive_service.dart';
+import '../services/database_service.dart';
 
 class BudgetProvider extends ChangeNotifier {
-  final HiveService _hive;
+  final DatabaseService _db;
 
   Budget? _budget;
 
-  BudgetProvider(this._hive) {
+  BudgetProvider(this._db) {
     _load();
   }
 
@@ -15,8 +15,8 @@ class BudgetProvider extends ChangeNotifier {
   double get monthlyLimit => _budget?.monthlyLimit ?? 0;
   double get dailyLimit => _budget?.dailyLimit ?? 0;
 
-  void _load() {
-    _budget = _hive.getBudget();
+  Future<void> _load() async {
+    _budget = await _db.getBudget();
     notifyListeners();
   }
 
@@ -25,7 +25,7 @@ class BudgetProvider extends ChangeNotifier {
     required double dailyLimit,
   }) async {
     final budget = Budget(monthlyLimit: monthlyLimit, dailyLimit: dailyLimit);
-    await _hive.saveBudget(budget);
+    await _db.saveBudget(budget);
     _budget = budget;
     notifyListeners();
   }

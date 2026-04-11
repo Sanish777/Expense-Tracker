@@ -2,19 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../models/budget.dart';
-import '../services/hive_service.dart';
+import '../services/database_service.dart';
 import '../services/analytics_service.dart';
 import '../services/notification_service.dart';
 
 class ExpenseProvider extends ChangeNotifier {
-  final HiveService _hive;
+  final DatabaseService _db;
   final AnalyticsService _analytics = AnalyticsService();
 
   List<Expense> _expenses = [];
   String? _categoryFilter;
   bool _isLoading = false;
 
-  ExpenseProvider(this._hive) {
+  ExpenseProvider(this._db) {
     _load();
   }
 
@@ -39,8 +39,8 @@ class ExpenseProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get habits => _analytics.getHabits(_expenses);
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  void _load() {
-    _expenses = _hive.getAllExpenses();
+  Future<void> _load() async {
+    _expenses = await _db.getExpenses();
     notifyListeners();
   }
 
@@ -61,8 +61,8 @@ class ExpenseProvider extends ChangeNotifier {
       date: date,
       note: note,
     );
-    await _hive.addExpense(expense);
-    _load();
+    await _db.insertExpense(expense);
+    await _load();
     _isLoading = false;
 
     // Budget alert check
@@ -109,8 +109,8 @@ class ExpenseProvider extends ChangeNotifier {
   }
 
   Future<void> deleteExpense(String id) async {
-    await _hive.deleteExpense(id);
-    _load();
+    await _db.deleteExpense(id);
+    await _load();
   }
 
   void setCategoryFilter(String? category) {
@@ -119,7 +119,7 @@ class ExpenseProvider extends ChangeNotifier {
   }
 
   Future<void> clearAll() async {
-    await _hive.clearAll();
-    _load();
+    await _db.clearAll();
+    await _load();
   }
 }

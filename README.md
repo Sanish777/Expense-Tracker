@@ -53,8 +53,8 @@
 | **Insights** | Pie chart, weekly trend bars, AI tips, habit detection |
 | **Budget Alerts** | Local notifications at 80% and 100% of limit |
 | **Settings** | Monthly/daily limits, theme toggle, clear all data |
-| **AI Suggestions** | Rule-based, no API key needed |
-| **Offline-first** | Hive local database – works without internet |
+| **Security** | Face ID, Admin Password, Master Recovery Key |
+| **Offline-first** | SQLite (sqflite) + Hive – no internet required |
 
 ---
 
@@ -64,7 +64,7 @@
 |-------|-----------|
 | **UI Framework** | Flutter 3.x (Dart) |
 | **State Management** | Provider (`ChangeNotifier`) |
-| **Local Database** | Hive 2 (key-value, embedded) |
+| **Local Database** | SQLite (sqflite) + Hive 2 |
 | **Charts** | fl_chart |
 | **Animations** | flutter_animate |
 | **Notifications** | flutter_local_notifications |
@@ -113,6 +113,25 @@ exp_tracker/
          ├── insights_screen.dart
          └── settings_screen.dart
 ```
+
+---
+
+## 🔐 Security & Authentication
+
+SpendWise AI is protected by a secure login layer to keep your financial data private.
+
+### Default Credentials
+On the first run, the app seeds a default admin account:
+- **Username**: `admin`
+- **Password**: `admin123`
+
+### Recovery (Master Password)
+If you forget your admin password, you can use the **Master Password** to reset it:
+- **Master Password**: `spendwise_master_2024`
+- **Action**: Use the "Forgot Password?" link on the login screen, enter the master password, and the admin password will be reset to `admin123`.
+
+### Biometrics
+- **Face ID / Touch ID**: Enabled for quick and secure access on supported devices.
 
 ---
 

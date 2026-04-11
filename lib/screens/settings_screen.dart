@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:share_plus/share_plus.dart';
 import '../providers/budget_provider.dart';
 import '../providers/expense_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/database_service.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../screens/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -93,6 +97,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _exportDatabase() async {
+    final dbFile = await DatabaseService().getDatabaseFile();
+    if (await dbFile.exists()) {
+      await Share.shareXFiles(
+        [XFile(dbFile.path)],
+        text: 'SpendWise AI Database Export (${DateTime.now().toLocal()})',
+      );
+    }
+  }
+
+  Future<void> _changePassword() async {
+    final oldController = TextEditingController();
+    final newController = TextEditingController();
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Change Admin Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: oldController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Current Password'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'New Password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Update')),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final auth = context.read<AuthService>();
+      final isOldCorrect = await auth.loginWithPassword('admin', oldController.text);
+      
+      if (isOldCorrect) {
+        await auth.resetAdminPassword(newController.text);
+        _showToast('Password updated successfully!', isError: false);
+      } else {
+        _showToast('Current password incorrect', isError: true);
+      }
+    }
+  }
+
+  void _showToast(String msg, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? AppTheme.danger : AppTheme.accent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -290,6 +358,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 28),
           const _SectionLabel(label: 'Data'),
 
+          // Export
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.ios_share_rounded,
+                    color: AppTheme.accent, size: 20),
+              ),
+              title: const Text('Export Database',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Share your data as a database file',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.accent),
+              onTap: _exportDatabase,
+            ),
+          ).animate().fadeIn(delay: 290.ms),
+
+          const SizedBox(height: 12),
+
+          // Change Password
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.lock_outline_rounded,
+                    color: AppTheme.primary, size: 20),
+              ),
+              title: const Text('Security',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Change admin password',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: _changePassword,
+            ),
+          ).animate().fadeIn(delay: 300.ms),
+
+          const SizedBox(height: 12),
+
+          // Logout (Back to Login)
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.logout_rounded,
+                    color: AppTheme.textMuted, size: 20),
+              ),
+              title: const Text('Logout',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Return to login screen',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textMuted),
+              onTap: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              ),
+            ),
+          ).animate().fadeIn(delay: 310.ms),
+
+          const SizedBox(height: 12),
+
           // Clear all
           Container(
             decoration: BoxDecoration(
@@ -326,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppTheme.danger),
               onTap: _clearAll,
             ),
-          ).animate().fadeIn(delay: 300.ms),
+          ).animate().fadeIn(delay: 320.ms),
 
           const SizedBox(height: 32),
           Center(

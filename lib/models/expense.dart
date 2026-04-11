@@ -43,6 +43,16 @@ class Expense extends HiveObject {
     );
   }
 
+  factory Expense.fromMap(Map<String, dynamic> map) {
+    return Expense(
+      id: map['id'],
+      amount: map['amount'],
+      category: map['category'],
+      date: DateTime.parse(map['date']),
+      note: map['note'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

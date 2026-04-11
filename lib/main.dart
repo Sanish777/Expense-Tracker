@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'services/hive_service.dart';
+import 'services/database_service.dart';
+import 'services/auth_service.dart';
 import 'providers/expense_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';
+import 'services/hive_service.dart'; // Still keep Hive for Theme for now to avoid migration overhead
 import 'theme/app_theme.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/add_expense_screen.dart';
-import 'screens/history_screen.dart';
-import 'screens/settings_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final dbService = DatabaseService();
   final hiveService = HiveService();
   await hiveService.init();
   await NotificationService.init();
@@ -23,17 +22,16 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        Provider<HiveService>.value(value: hiveService),
-        ChangeNotifierProxyProvider<HiveService, ExpenseProvider>(
-          create: (ctx) => ExpenseProvider(ctx.read<HiveService>()),
-          update: (_, hive, prev) => prev ?? ExpenseProvider(hive),
-        ),
-        ChangeNotifierProxyProvider<HiveService, BudgetProvider>(
-          create: (ctx) => BudgetProvider(ctx.read<HiveService>()),
-          update: (_, hive, prev) => prev ?? BudgetProvider(hive),
+        Provider<DatabaseService>.value(value: dbService),
+        Provider<AuthService>(create: (ctx) => AuthService(ctx.read<DatabaseService>())),
+        ChangeNotifierProvider(
+          create: (ctx) => ExpenseProvider(ctx.read<DatabaseService>()),
         ),
         ChangeNotifierProvider(
-          create: (ctx) => ThemeProvider(ctx.read<HiveService>()),
+          create: (ctx) => BudgetProvider(ctx.read<DatabaseService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => ThemeProvider(hiveService),
         ),
       ],
       child: const SpendWiseApp(),
