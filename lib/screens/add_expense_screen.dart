@@ -8,10 +8,12 @@ import '../providers/category_provider.dart';
 import '../models/app_category.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
+import '../services/ocr_service.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final VoidCallback? onClose;
-  const AddExpenseScreen({super.key, this.onClose});
+  final bool autoScan;
+  const AddExpenseScreen({super.key, this.onClose, this.autoScan = false});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -20,18 +22,22 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+  final OCRService _ocrService = OCRService();
   AppCategory? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
+  bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
-    // Pre-select first category if available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final categories = context.read<CategoryProvider>().categories;
       if (categories.isNotEmpty) {
         setState(() => _selectedCategory = categories.first);
+      }
+      if (widget.autoScan) {
+        _scanReceipt();
       }
     });
   }
@@ -40,7 +46,27 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    _ocrService.dispose();
     super.dispose();
+  }
+
+  Future<void> _scanReceipt() async {
+    setState(() => _isScanning = true);
+    final total = await _ocrService.scanReceiptTotal();
+    
+    if (mounted) {
+      if (total != null) {
+        _amountController.text = total.toStringAsFixed(total.truncateToDouble() == total ? 0 : 2);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Amount extracted successfully!'), backgroundColor: AppTheme.accent),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not detect amount. Please enter manually.'), backgroundColor: AppTheme.danger),
+        );
+      }
+      setState(() => _isScanning = false);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -150,11 +176,25 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Amount (Rs.)',
-                        style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Amount (Rs.)',
+                            style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500)),
+                        _isScanning 
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : IconButton(
+                                onPressed: _scanReceipt,
+                                icon: const Icon(Icons.document_scanner_rounded, color: Colors.white),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                tooltip: 'Scan Receipt',
+                              ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _amountController,

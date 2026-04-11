@@ -175,9 +175,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _QuickAction(
-                            icon: Icons.swap_horiz_rounded,
-                            label: 'Transfer',
-                            onTap: () => _showComingSoon(context, 'Transfer'),
+                            icon: Icons.document_scanner_rounded,
+                            label: 'Scan',
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AddExpenseScreen(autoScan: true)),
+                            ),
                           ),
                           _QuickAction(
                             icon: Icons.download_rounded,

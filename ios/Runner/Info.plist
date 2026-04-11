@@ -68,7 +68,11 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSCameraUsageDescription</key>
+		<string>Wise Expense needs camera access to smartly scan your shopping receipts.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Wise Expense needs photo library access to upload existing bills.</string>
 		<key>NSFaceIDUsageDescription</key>
-		<string>SpendWise requires Face ID to securely authenticate you and protect your financial data.</string>
+		<string>Wise Expense requires Face ID to securely authenticate and protect your private financial data.</string>
 	</dict>
 </plist>
