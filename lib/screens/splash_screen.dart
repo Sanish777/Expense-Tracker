@@ -34,8 +34,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -44,22 +46,18 @@ class _SplashScreenState extends State<SplashScreen> {
               'assets/images/app_icon.png',
               width: 140,
               height: 140,
+              color: isDark ? Colors.white : Colors.black,
+              colorBlendMode: BlendMode.srcIn,
             )
-                .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                .scale(
-                  begin: const Offset(0.9, 0.9),
-                  end: const Offset(1.1, 1.1),
-                  duration: 2000.ms,
-                  curve: Curves.easeInOutQuad,
-                )
-                .shimmer(delay: 1000.ms, duration: 2000.ms, color: Colors.black12),
+                .animate(onPlay: (controller) => controller.repeat())
+                .shimmer(delay: 1000.ms, duration: 2000.ms, color: isDark ? Colors.white24 : Colors.black12),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Wise Expense',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: Colors.black,
+                color: isDark ? Colors.white : Colors.black,
                 letterSpacing: 2.0,
               ),
             ).animate().fadeIn(delay: 400.ms, duration: 1000.ms).slideY(begin: 0.2, end: 0),

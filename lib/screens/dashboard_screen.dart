@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../providers/category_provider.dart';
+import '../providers/expense_provider.dart';
+import '../providers/budget_provider.dart';
 import '../models/app_category.dart';
 import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
@@ -321,26 +323,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _QuickAction({required this.icon, required this.label});
+  final VoidCallback onTap;
+  const _QuickAction({required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
-          child: Icon(icon, color: Colors.white, size: 22),
-        ),
-        const SizedBox(height: 6),
-        Text(label,
-            style: const TextStyle(
-                color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
-      ],
+          const SizedBox(height: 6),
+          Text(label,
+              style: const TextStyle(
+                  color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
+        ],
+      ),
     );
   }
 }

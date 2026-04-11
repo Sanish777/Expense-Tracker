@@ -1,18 +1,37 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../providers/expense_provider.dart';
 import '../providers/category_provider.dart';
 import '../models/app_category.dart';
+import '../models/expense.dart';
 import '../widgets/expense_card.dart';
 import '../widgets/category_chip.dart';
 import '../theme/app_theme.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     final expProv = context.watch<ExpenseProvider>();
     final catProv = context.watch<CategoryProvider>();
     final expenses = expProv.filteredExpenses;
     final selected = expProv.categoryFilter;
+
+    // ── Group expenses by date ───────────────────────────────────────────
+    final grouped = <DateTime, List<Expense>>{};
+    for (var e in expenses) {
+      final date = DateTime(e.date.year, e.date.month, e.date.day);
+      grouped.putIfAbsent(date, () => []).add(e);
+    }
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    final flattenedItems = <dynamic>[];
+    for (var date in sortedDates) {
+      flattenedItems.add(date);
+      flattenedItems.addAll(grouped[date]!);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -45,6 +64,22 @@ class HistoryScreen extends StatelessWidget {
                   range: TimeRange.thisWeek,
                   selected: expProv.timeFilter == TimeRange.thisWeek,
                   onTap: () => expProv.setTimeFilter(TimeRange.thisWeek),
+                ),
+                _TimeFilterChip(
+                  label: 'Custom Range',
+                  range: TimeRange.custom,
+                  selected: expProv.timeFilter == TimeRange.custom,
+                  onTap: () async {
+                    final range = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDateRange: expProv.customDateRange,
+                    );
+                    if (range != null) {
+                      expProv.setTimeFilter(TimeRange.custom, customRange: range);
+                    }
+                  },
                 ),
               ],
             ),
@@ -106,7 +141,7 @@ class HistoryScreen extends StatelessWidget {
 
           // ── Expense list ────────────────────────────────────────────────
           Expanded(
-            child: expenses.isEmpty
+            child: flattenedItems.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -130,14 +165,32 @@ class HistoryScreen extends StatelessWidget {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                    itemCount: expenses.length,
+                    itemCount: flattenedItems.length,
                     itemBuilder: (context, i) {
+                      final item = flattenedItems[i];
+                      
+                      if (item is DateTime) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 20, 0, 12),
+                          child: Text(
+                            _formatDateHeader(item),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textMuted.withOpacity(0.8),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ).animate().fadeIn(delay: 50.ms);
+                      }
+                      
+                      final expense = item as Expense;
                       return ExpenseCard(
-                        expense: expenses[i],
+                        expense: expense,
                         onDelete: () =>
-                            expProv.deleteExpense(expenses[i].id),
+                            expProv.deleteExpense(expense.id),
                       ).animate().fadeIn(
-                          delay: Duration(milliseconds: 40 * i),
+                          delay: Duration(milliseconds: 20 * i),
                           duration: 300.ms);
                     },
                   ),
@@ -145,6 +198,31 @@ class HistoryScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatDateHeader(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final itemDate = DateTime(date.year, date.month, date.day);
+
+    if (itemDate == today) return 'Today';
+    if (itemDate == yesterday) return 'Yesterday';
+
+    final day = date.day;
+    String suffix = 'th';
+    if (day >= 11 && day <= 13) {
+      suffix = 'th';
+    } else {
+      switch (day % 10) {
+        case 1: suffix = 'st'; break;
+        case 2: suffix = 'nd'; break;
+        case 3: suffix = 'rd'; break;
+      }
+    }
+    
+    final month = DateFormat('MMMM').format(date);
+    return '$day$suffix $month ${date.year != now.year ? date.year : ''}'.trim();
   }
 }
 

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/expense_provider.dart';
+import '../providers/category_provider.dart';
 import '../widgets/spending_chart.dart';
 import '../widgets/insight_card.dart';
 import '../theme/app_theme.dart';
-import '../models/category.dart';
+import '../models/app_category.dart';
 import '../services/ai_service.dart';
 
 class InsightsScreen extends StatelessWidget {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'services/database_service.dart';
 import 'services/auth_service.dart';
 import 'providers/expense_provider.dart';
+import 'providers/category_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/notification_service.dart';

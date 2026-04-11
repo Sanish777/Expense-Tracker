@@ -13,6 +13,7 @@ class DatabaseService {
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
+  static const String dbName = 'wise_expense.db';
   Database? _database;
 
   Future<Database> get database async {
@@ -27,7 +28,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE expenses(
@@ -57,7 +58,7 @@ class DatabaseService {
         await db.execute('''
           CREATE TABLE users(
             username TEXT PRIMARY KEY,
-            passwordHash TEXT
+            password_hash TEXT
           )
         ''');
 
@@ -72,7 +73,7 @@ class DatabaseService {
         // Seed admin user
         await db.insert('users', {
           'username': 'admin',
-          'passwordHash': '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' // admin123
+          'password_hash': '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' // admin123
         });
 
         // Seed default categories
@@ -97,7 +98,7 @@ class DatabaseService {
               emoji TEXT
             )
           ''');
-          // Seed for existing users
+          // Seed default categories for existing users
           final defaultCategories = [
             {'id': 'food', 'title': 'Food', 'emoji': '🍔'},
             {'id': 'transport', 'title': 'Transport', 'emoji': '🚌'},
@@ -108,6 +109,28 @@ class DatabaseService {
           ];
           for (var cat in defaultCategories) {
             await db.insert('categories', cat);
+          }
+        }
+        if (oldVersion < 3) {
+          // Rename passwordHash to password_hash if it exists
+          try {
+            await db.execute('ALTER TABLE users RENAME COLUMN passwordHash TO password_hash');
+          } catch (e) {
+            // If RENAME COLUMN is not supported, we migrate manually
+            final users = await db.query('users');
+            await db.execute('DROP TABLE users');
+            await db.execute('''
+              CREATE TABLE users(
+                username TEXT PRIMARY KEY,
+                password_hash TEXT
+              )
+            ''');
+            for (var user in users) {
+              await db.insert('users', {
+                'username': user['username'],
+                'password_hash': user['passwordHash'] ?? user['password_hash'],
+              });
+            }
           }
         }
       },

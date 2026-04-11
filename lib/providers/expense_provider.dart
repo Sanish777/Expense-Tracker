@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/expense.dart';
 import '../models/budget.dart';
@@ -13,6 +13,7 @@ class ExpenseProvider extends ChangeNotifier {
   List<Expense> _expenses = [];
   String? _categoryFilter;
   TimeRange _timeFilter = TimeRange.allTime;
+  DateTimeRange? _customDateRange;
   bool _isLoading = false;
 
   ExpenseProvider(this._db) {
@@ -24,6 +25,7 @@ class ExpenseProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get categoryFilter => _categoryFilter;
   TimeRange get timeFilter => _timeFilter;
+  DateTimeRange? get customDateRange => _customDateRange;
 
   List<Expense> get filteredExpenses {
     var list = _expenses;
@@ -36,6 +38,11 @@ class ExpenseProvider extends ChangeNotifier {
       final now = DateTime.now();
       final lastWeek = now.subtract(const Duration(days: 7));
       list = list.where((e) => e.date.isAfter(lastWeek)).toList();
+    } else if (_timeFilter == TimeRange.custom && _customDateRange != null) {
+      list = list.where((e) => 
+        e.date.isAfter(_customDateRange!.start.subtract(const Duration(seconds: 1))) && 
+        e.date.isBefore(_customDateRange!.end.add(const Duration(days: 1)))
+      ).toList();
     }
 
     // Category filtering
@@ -136,8 +143,11 @@ class ExpenseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setTimeFilter(TimeRange range) {
+  void setTimeFilter(TimeRange range, {DateTimeRange? customRange}) {
     _timeFilter = range;
+    if (range == TimeRange.custom && customRange != null) {
+      _customDateRange = customRange;
+    }
     notifyListeners();
   }
 
@@ -147,4 +157,4 @@ class ExpenseProvider extends ChangeNotifier {
   }
 }
 
-enum TimeRange { allTime, thisMonth, thisWeek }
+enum TimeRange { allTime, thisMonth, thisWeek, custom }

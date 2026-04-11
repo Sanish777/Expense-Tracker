@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _showMasterPassField = false;
+  bool _obscurePassword = true;
 
   bool _isBiometricSupported = false;
   bool _isBiometricEnabled = false;
@@ -41,25 +42,30 @@ class _LoginScreenState extends State<LoginScreen> {
     if (password.isEmpty) return;
 
     setState(() => _isLoading = true);
-    final auth = context.read<AuthService>();
     
-    bool success;
-    if (_showMasterPassField) {
-      success = await auth.loginWithMasterPassword(password);
-      if (success) {
-        await auth.resetAdminPassword('admin123');
-        _showSuccess('Password reset to admin123. Please change it!');
+    try {
+      final auth = context.read<AuthService>();
+      
+      bool success;
+      if (_showMasterPassField) {
+        success = await auth.loginWithMasterPassword(password);
+        if (success) {
+          await auth.resetAdminPassword('admin123');
+          _showSuccess('Password reset to admin123. Please change it!');
+        }
+      } else {
+        success = await auth.loginWithPassword('admin', password);
       }
-    } else {
-      success = await auth.loginWithPassword('admin', password);
-    }
 
-    setState(() => _isLoading = false);
-
-    if (success) {
-      _enterApp();
-    } else {
-      _showError(_showMasterPassField ? 'Invalid Master Password' : 'Wrong Password');
+      if (success) {
+        _enterApp();
+      } else {
+        _showError(_showMasterPassField ? 'Invalid Master Password' : 'Wrong Password');
+      }
+    } catch (e) {
+      _showError('Login error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -90,26 +96,31 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SizedBox(
         width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
         child: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Logo
-              Image.asset('assets/images/app_icon.png', width: 100, height: 100)
-                  .animate()
-                  .scale(delay: 200.ms, curve: Curves.easeOutBack),
+              // Logo (Tinted based on theme)
+              Image.asset(
+                'assets/images/app_icon.png',
+                width: 100,
+                height: 100,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+                colorBlendMode: BlendMode.srcIn,
+              )
+                  .animate(onPlay: (c) => c.repeat())
+                  .shimmer(delay: 1500.ms, duration: 2000.ms, color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
               
               const SizedBox(height: 24),
               const Text(
                 'Wise Expense',
                 style: TextStyle(
-                  color: Colors.white,
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.2,
@@ -142,10 +153,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     TextField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: _showMasterPassField ? 'Enter Master Password' : 'Enter Admin Password',
                         prefixIcon: const Icon(Icons.lock_rounded),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            size: 20,
+                          ),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
                         filled: true,
                       ),
                     ),
@@ -155,8 +173,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 54,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handlePasswordLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black,
+                          foregroundColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                         child: _isLoading 
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? CircularProgressIndicator(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.black
+                                  : Colors.white)
                           : Text(_showMasterPassField ? 'Unlock & Reset' : 'Login'),
                       ),
                     ),

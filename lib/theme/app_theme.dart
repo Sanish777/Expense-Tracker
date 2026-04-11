@@ -26,7 +26,7 @@ class AppTheme {
   static ThemeData get light {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
-      scaffoldBackgroundColor: bgLight,
+      scaffoldBackgroundColor: Colors.white,
       colorScheme: const ColorScheme.light(
         primary: primary,
         secondary: accent,

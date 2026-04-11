@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../screens/login_screen.dart';
 import '../screens/category_management_screen.dart';
+import '../screens/budget_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,8 +20,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _monthlyController = TextEditingController();
-  final _dailyController = TextEditingController();
   bool _isBiometricEnabled = false;
   bool _isBiometricSupported = false;
 
@@ -28,12 +27,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final budget = context.read<BudgetProvider>().budget;
-      if (budget != null) {
-        _monthlyController.text = budget.monthlyLimit.toStringAsFixed(0);
-        _dailyController.text = budget.dailyLimit.toStringAsFixed(0);
-      }
-      
       final auth = context.read<AuthService>();
       final supported = await auth.canAuthenticate();
       final enabled = await auth.isBiometricEnabled();
@@ -46,31 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void dispose() {
-    _monthlyController.dispose();
-    _dailyController.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveBudget() async {
-    final monthly = double.tryParse(_monthlyController.text) ?? 0;
-    final daily = double.tryParse(_dailyController.text) ?? 0;
-    await context
-        .read<BudgetProvider>()
-        .saveBudget(monthlyLimit: monthly, dailyLimit: daily);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            SizedBox(width: 10),
-            Text('Budget saved successfully!'),
-          ]),
-          backgroundColor: AppTheme.accent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    }
   }
 
   Future<void> _clearAll() async {
@@ -124,30 +93,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final oldController = TextEditingController();
     final newController = TextEditingController();
     
+    bool obscureOld = true;
+    bool obscureNew = true;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Change Admin Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: oldController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Current Password'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'New Password'),
-            ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Change Admin Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldController,
+                obscureText: obscureOld,
+                decoration: InputDecoration(
+                  labelText: 'Current Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(obscureOld ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
+                    onPressed: () => setDialogState(() => obscureOld = !obscureOld),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: newController,
+                obscureText: obscureNew,
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
+                    onPressed: () => setDialogState(() => obscureNew = !obscureNew),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Update')),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Update')),
-        ],
       ),
     );
 
@@ -172,26 +158,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     final passController = TextEditingController();
+    bool obscurePass = true;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Enable Face ID'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter admin password to enable biometric login.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Admin Password'),
-            ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Enable Face ID'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter admin password to enable biometric login.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passController,
+                obscureText: obscurePass,
+                decoration: InputDecoration(
+                  labelText: 'Admin Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
+                    onPressed: () => setDialogState(() => obscurePass = !obscurePass),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verify')),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verify')),
-        ],
       ),
     );
 
@@ -231,50 +226,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
           const SizedBox(height: 12),
-          const _SectionLabel(label: 'Budget Settings'),
-
-          // Monthly limit
-          _SettingsCard(
-            icon: Icons.calendar_month_rounded,
-            iconColor: AppTheme.primary,
-            title: 'Monthly Limit',
-            child: TextField(
-              controller: _monthlyController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: 'e.g. 25000',
-                prefixText: 'Rs. ',
-              ),
+          const _SectionLabel(label: 'Limits & Budget 💰'),
+          
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
             ),
-          ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-
-          const SizedBox(height: 12),
-
-          // Daily limit
-          _SettingsCard(
-            icon: Icons.today_rounded,
-            iconColor: AppTheme.warning,
-            title: 'Daily Limit',
-            child: TextField(
-              controller: _dailyController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: 'e.g. 1000',
-                prefixText: 'Rs. ',
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.account_balance_wallet_outlined,
+                    color: AppTheme.primary, size: 20),
               ),
-            ),
-          ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-
-          const SizedBox(height: 16),
-
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _saveBudget,
-              icon: const Icon(Icons.save_rounded),
-              label: const Text('Save Budget'),
+              title: const Text('Budget Settings',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Set monthly and daily spend limits',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BudgetSettingsScreen()),
+              ),
             ),
           ).animate().fadeIn(delay: 200.ms),
 

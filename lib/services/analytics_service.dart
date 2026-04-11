@@ -1,5 +1,5 @@
 import '../models/expense.dart';
-import '../models/category.dart';
+import '../models/app_category.dart';
 
 class AnalyticsService {
   // ── Monthly Total ─────────────────────────────────────────────────────────
