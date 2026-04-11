@@ -41,7 +41,7 @@ class AppTheme {
         bodyLarge: GoogleFonts.poppins(color: textDark, fontSize: 15),
         bodyMedium: GoogleFonts.poppins(color: textMuted, fontSize: 13),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardWhite,
         elevation: 0,
         shadowColor: primary.withOpacity(0.08),
@@ -124,7 +124,7 @@ class AppTheme {
         bodyColor: Colors.white,
         displayColor: Colors.white,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardDark,
         elevation: 0,
         shape: RoundedRectangleBorder(

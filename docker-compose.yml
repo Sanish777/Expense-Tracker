@@ -9,6 +9,10 @@ services:
     container_name: spendwise_ai
     ports:
       - "8080:80"          # App available at http://localhost:8080
+    # volumes:
+    #   - ./lib:/app/lib
+    #   - ./assets:/app/assets
+    #   - ./pubspec.yaml:/app/pubspec.yaml
     restart: unless-stopped
     environment:
       - TZ=Asia/Kathmandu  # Adjust to your timezone

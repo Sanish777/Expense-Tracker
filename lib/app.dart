@@ -6,6 +6,7 @@ import '../screens/add_expense_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/insights_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/splash_screen.dart';
 import '../providers/expense_provider.dart';
 import '../providers/budget_provider.dart';
 import '../providers/theme_provider.dart';
@@ -24,29 +25,29 @@ class SpendWiseApp extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeProvider.themeMode,
-          home: const _MainShell(),
+          home: const SplashScreen(),
         );
       },
     );
   }
 }
 
-class _MainShell extends StatefulWidget {
-  const _MainShell();
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
 
   @override
-  State<_MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell> {
+class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    HistoryScreen(),
-    AddExpenseScreen(), // centre tab – also opened by FAB
-    InsightsScreen(),
-    SettingsScreen(),
+  late final List<Widget> _screens = [
+    const DashboardScreen(),
+    const HistoryScreen(),
+    AddExpenseScreen(onClose: () => _onNavTap(0)), // centre tab
+    const InsightsScreen(),
+    const SettingsScreen(),
   ];
 
   void _onNavTap(int index) {
@@ -55,65 +56,68 @@ class _MainShellState extends State<_MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: IndexedStack(index: _currentIndex, children: _screens),
 
-      // Centre elevated FAB acting as the Add tab
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onNavTap(2),
-        elevation: 4,
-        child: const Icon(Icons.add_rounded, size: 28),
-      ).animate(target: _currentIndex == 2 ? 1 : 0).scale(
-            begin: const Offset(1, 1),
-            end: const Offset(0.9, 0.9),
-            duration: 150.ms,
-          ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        // Centre elevated FAB acting as the Add tab
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _onNavTap(2),
+          elevation: 4,
+          child: const Icon(Icons.add_rounded, size: 28),
+        ).animate(target: _currentIndex == 2 ? 1 : 0).scale(
+              begin: const Offset(1, 1),
+              end: const Offset(0.9, 0.9),
+              duration: 150.ms,
+            ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        elevation: 12,
-        color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                index: 0,
-                currentIndex: _currentIndex,
-                onTap: _onNavTap,
-              ),
-              _NavItem(
-                icon: Icons.receipt_long_outlined,
-                activeIcon: Icons.receipt_long_rounded,
-                label: 'History',
-                index: 1,
-                currentIndex: _currentIndex,
-                onTap: _onNavTap,
-              ),
-              const SizedBox(width: 56), // space for FAB notch
-              _NavItem(
-                icon: Icons.bar_chart_outlined,
-                activeIcon: Icons.bar_chart_rounded,
-                label: 'Insights',
-                index: 3,
-                currentIndex: _currentIndex,
-                onTap: _onNavTap,
-              ),
-              _NavItem(
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings_rounded,
-                label: 'Settings',
-                index: 4,
-                currentIndex: _currentIndex,
-                onTap: _onNavTap,
-              ),
-            ],
+        bottomNavigationBar: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          elevation: 12,
+          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _NavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                  index: 0,
+                  currentIndex: _currentIndex,
+                  onTap: _onNavTap,
+                ),
+                _NavItem(
+                  icon: Icons.receipt_long_outlined,
+                  activeIcon: Icons.receipt_long_rounded,
+                  label: 'History',
+                  index: 1,
+                  currentIndex: _currentIndex,
+                  onTap: _onNavTap,
+                ),
+                const SizedBox(width: 56), // space for FAB notch
+                _NavItem(
+                  icon: Icons.bar_chart_outlined,
+                  activeIcon: Icons.bar_chart_rounded,
+                  label: 'Insights',
+                  index: 3,
+                  currentIndex: _currentIndex,
+                  onTap: _onNavTap,
+                ),
+                _NavItem(
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings_rounded,
+                  label: 'Settings',
+                  index: 4,
+                  currentIndex: _currentIndex,
+                  onTap: _onNavTap,
+                ),
+              ],
+            ),
           ),
         ),
       ),
