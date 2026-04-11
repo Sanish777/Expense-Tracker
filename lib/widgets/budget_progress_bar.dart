@@ -46,14 +46,35 @@ class BudgetProgressBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: pct,
-            minHeight: 10,
-            backgroundColor:
-                Theme.of(context).dividerColor.withOpacity(0.15),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
+        Container(
+          height: 10,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Theme.of(context).dividerColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            children: [
+              FractionallySizedBox(
+                widthFactor: pct,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: isOver
+                        ? const LinearGradient(colors: [AppTheme.danger, Color(0xFFFF8B8B)])
+                        : AppTheme.rainbowGradient,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isOver ? AppTheme.danger : AppTheme.primary)
+                            .withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

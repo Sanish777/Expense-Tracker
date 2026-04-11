@@ -191,15 +191,31 @@ class AppTheme {
 
   // ── Shared Gradients ──────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF9B89FF), Color(0xFF7B61FF)],
+    colors: [Color(0xFF7B61FF), Color(0xFF9B89FF), Color(0xFFA67CFF)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient headerGradient = LinearGradient(
-    colors: [Color(0xFF7B61FF), Color(0xFF5B41FF)],
+    colors: [
+      Color(0xFF7B61FF), // Primary Purple
+      Color(0xFF5B41FF), // Deeper Purple
+      Color(0xFF8E44AD), // Amethyst
+    ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
+  );
+
+  // Rainbow accent gradient for subtle highlights matching the logo
+  static const LinearGradient rainbowGradient = LinearGradient(
+    colors: [
+      Color(0xFF4ECDC4), // Green/Teal
+      Color(0xFFFFC542), // Yellow
+      Color(0xFFFF6B6B), // Red/Pink
+      Color(0xFF7B61FF), // Purple
+    ],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
   );
 
   // ── Category colour utility ───────────────────────────────────────────────

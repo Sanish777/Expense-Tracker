@@ -27,129 +27,153 @@ class DashboardScreen extends StatelessWidget {
         slivers: [
           // ── Top greeting + header card ──────────────────────────────────
           SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: AppTheme.headerGradient,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting row
-                  Row(
+            child: Column(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: AppTheme.headerGradient,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.person_rounded,
-                            color: Colors.white, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // Greeting row
+                      Row(
                         children: [
-                          const Text('Hello there! 👋',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600)),
-                          Text(
-                            DateFormat('EEEE, d MMMM').format(DateTime.now()),
-                            style: const TextStyle(
-                                color: Colors.white60, fontSize: 12),
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              image: const DecorationImage(
+                                image: AssetImage('assets/images/app_icon.png'),
+                                fit: BoxFit.cover,
+                              ),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.5),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Hello there! 👋',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                DateFormat('EEEE, d MMMM').format(DateTime.now()),
+                                style: const TextStyle(
+                                    color: Colors.white60, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.notifications_outlined,
+                                color: Colors.white, size: 20),
                           ),
                         ],
                       ),
-                      const Spacer(),
+
+                      const SizedBox(height: 28),
+
+                      // Balance card
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.2), width: 1),
                         ),
-                        child: const Icon(Icons.notifications_outlined,
-                            color: Colors.white, size: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('YOUR BALANCE THIS MONTH',
+                                style: TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 11,
+                                    letterSpacing: 1.2,
+                                    fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Rs. ${total.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 34,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Padding(
+                                  padding: EdgeInsets.only(bottom: 4),
+                                  child: Icon(Icons.visibility_outlined,
+                                      color: Colors.white54, size: 18),
+                                ),
+                              ],
+                            ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2),
+                            const SizedBox(height: 16),
+                            BudgetProgressBar(
+                              spent: total,
+                              limit: budProv.monthlyLimit,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Quick action buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _QuickAction(
+                              icon: Icons.swap_horiz_rounded, label: 'Transfer'),
+                          _QuickAction(icon: Icons.download_rounded, label: 'Income'),
+                          _QuickAction(
+                              icon: Icons.pie_chart_outline_rounded, label: 'Stats'),
+                          _QuickAction(
+                              icon: Icons.add_rounded, label: 'Add'),
+                        ],
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 28),
-
-                  // Balance card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: Colors.white.withOpacity(0.2), width: 1),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('YOUR BALANCE THIS MONTH',
-                            style: TextStyle(
-                                color: Colors.white60,
-                                fontSize: 11,
-                                letterSpacing: 1.2,
-                                fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Rs. ${total.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 4),
-                              child: Icon(Icons.visibility_outlined,
-                                  color: Colors.white54, size: 18),
-                            ),
-                          ],
-                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2),
-                        const SizedBox(height: 16),
-                        BudgetProgressBar(
-                          spent: total,
-                          limit: budProv.monthlyLimit,
-                        ),
-                      ],
+                ),
+                // Rainbow accent line
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: Container(
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      gradient: AppTheme.rainbowGradient,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                      ),
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // Quick action buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _QuickAction(
-                          icon: Icons.swap_horiz_rounded, label: 'Transfer'),
-                      _QuickAction(icon: Icons.download_rounded, label: 'Income'),
-                      _QuickAction(
-                          icon: Icons.pie_chart_outline_rounded, label: 'Stats'),
-                      _QuickAction(
-                          icon: Icons.add_rounded, label: 'Add'),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ).animate().fadeIn(duration: 400.ms),
           ),
 

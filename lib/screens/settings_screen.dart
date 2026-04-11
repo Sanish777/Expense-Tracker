@@ -116,11 +116,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25),
+                    color: Colors.white,
                     shape: BoxShape.circle,
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/app_icon.png'),
+                      fit: BoxFit.cover,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.person_rounded,
-                      color: Colors.white, size: 30),
                 ),
                 const SizedBox(width: 16),
                 const Column(
