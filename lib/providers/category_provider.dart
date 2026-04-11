@@ -15,6 +15,14 @@ class CategoryProvider extends ChangeNotifier {
   List<AppCategory> get categories => _categories;
   bool get isLoading => _isLoading;
 
+  AppCategory? findById(String id) {
+    try {
+      return _categories.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _load() async {
     _isLoading = true;
     notifyListeners();

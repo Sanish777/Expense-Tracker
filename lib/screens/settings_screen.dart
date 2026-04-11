@@ -230,54 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
-          // ── Profile card ───────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/app_icon.png'),
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('SpendWise User',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700)),
-                    SizedBox(height: 2),
-                    Text('Track · Analyse · Save',
-                        style:
-                            TextStyle(color: Colors.white70, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           const _SectionLabel(label: 'Budget Settings'),
 
           // Monthly limit
@@ -415,86 +368,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ).animate().fadeIn(delay: 280.ms),
 
           const SizedBox(height: 28),
-          const _SectionLabel(label: 'Data'),
-
-          // Export
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2)),
-              ],
-            ),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.ios_share_rounded,
-                    color: AppTheme.accent, size: 20),
-              ),
-              title: const Text('Export Database',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14)),
-              subtitle: const Text('Share your data as a database file',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-              trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.accent),
-              onTap: _exportDatabase,
-            ),
-          ).animate().fadeIn(delay: 290.ms),
-
-          const SizedBox(height: 12),
-
-          // Biometric Toggle
-          if (_isBiometricSupported)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2)),
-                ],
-              ),
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.face_unlock_rounded,
-                      color: AppTheme.accent, size: 20),
-                ),
-                title: const Text('Biometric Login',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                subtitle: const Text('Unlock app with Face ID',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-                value: _isBiometricEnabled,
-                activeColor: AppTheme.accent,
-                onChanged: _toggleBiometrics,
-              ),
-            ).animate().fadeIn(delay: 295.ms),
-
-          if (_isBiometricSupported) const SizedBox(height: 12),
-
-          if (_isBiometricSupported) const SizedBox(height: 12),
+          const SizedBox(height: 28),
+          const _SectionLabel(label: 'Data & Categories 📊'),
 
           // Manage Categories
           Container(
@@ -538,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 12),
 
-          // Change Password
+          // Export
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color,
@@ -557,62 +432,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
+                  color: AppTheme.accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.lock_outline_rounded,
-                    color: AppTheme.primary, size: 20),
+                child: const Icon(Icons.ios_share_rounded,
+                    color: AppTheme.accent, size: 20),
               ),
-              title: const Text('Security',
+              title: const Text('Export Database',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14)),
-              subtitle: const Text('Change admin password',
+              subtitle: const Text('Share your data as a database file',
                   style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.primary),
-              onTap: _changePassword,
-            ),
-          ).animate().fadeIn(delay: 300.ms),
-
-          const SizedBox(height: 12),
-
-          // Logout (Back to Login)
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2)),
-              ],
-            ),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.textMuted.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.logout_rounded,
-                    color: AppTheme.textMuted, size: 20),
-              ),
-              title: const Text('Logout',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14)),
-              subtitle: const Text('Return to login screen',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-              trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.textMuted),
-              onTap: () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              ),
+                  color: AppTheme.accent),
+              onTap: _exportDatabase,
             ),
           ).animate().fadeIn(delay: 310.ms),
 
@@ -656,12 +490,115 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ).animate().fadeIn(delay: 320.ms),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+          const _SectionLabel(label: 'Security & Access 🛡️'),
+
+          // Security (Change Password)
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.lock_outline_rounded,
+                    color: AppTheme.primary, size: 20),
+              ),
+              title: const Text('Update Password',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Change your admin access password',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: _changePassword,
+            ),
+          ).animate().fadeIn(delay: 330.ms),
+
+          const SizedBox(height: 12),
+
+          // Logout
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.logout_rounded,
+                    color: AppTheme.textMuted, size: 20),
+              ),
+              title: const Text('Logout',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              onTap: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              ),
+            ),
+          ).animate().fadeIn(delay: 340.ms),
+
+          const SizedBox(height: 28),
+          const _SectionLabel(label: 'Coming Soon 🚀'),
+          Opacity(
+            opacity: 0.5,
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: const ListTile(
+                leading: Icon(Icons.cloud_upload_outlined),
+                title: Text('Cloud Sync', style: TextStyle(fontSize: 14)),
+                subtitle: Text('Sync data across devices', style: TextStyle(fontSize: 12)),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 48),
           Center(
-            child: Text('SpendWise AI v1.0.0',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textMuted.withOpacity(0.6))),
+            child: Column(
+              children: [
+                Image.asset('assets/images/app_icon.png', width: 40, height: 40),
+                const SizedBox(height: 12),
+                Text('Wise Expense v1.0.0',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textMuted.withOpacity(0.6))),
+                const SizedBox(height: 4),
+                Text('Crafted with ❤️ for finance tracking',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.textMuted.withOpacity(0.4))),
+              ],
+            ),
           ),
         ],
       ),

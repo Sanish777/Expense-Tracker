@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
-import '../models/category.dart';
+import '../providers/category_provider.dart';
 import '../theme/app_theme.dart';
 
 class ExpenseCard extends StatelessWidget {
@@ -16,8 +16,11 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = ExpenseCategory.fromString(expense.category);
-    final color = Color(AnalyticsHelper.categoryColor(expense.category));
+    final catProv = context.watch<CategoryProvider>();
+    final cat = catProv.findById(expense.category);
+    
+    // Use a default color if specific category color not defined
+    final color = AppTheme.primary;
 
     return Dismissible(
       key: Key(expense.id),
@@ -40,7 +43,7 @@ class ExpenseCard extends StatelessWidget {
           color: Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: color.withOpacity(0.25),
+            color: color.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -51,11 +54,11 @@ class ExpenseCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(cat.emoji, style: const TextStyle(fontSize: 22)),
+                child: Text(cat?.emoji ?? '📦', style: const TextStyle(fontSize: 22)),
               ),
             ),
             const SizedBox(width: 14),
@@ -66,7 +69,7 @@ class ExpenseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cat.label,
+                    cat?.title ?? 'Unknown',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -105,26 +108,5 @@ class ExpenseCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// Helper alias to avoid circular import
-class AnalyticsHelper {
-  static int categoryColor(String category) {
-    final cat = ExpenseCategory.fromString(category);
-    switch (cat) {
-      case ExpenseCategory.food:
-        return 0xFFFF6B6B;
-      case ExpenseCategory.transport:
-        return 0xFF4ECDC4;
-      case ExpenseCategory.shopping:
-        return 0xFFFFE66D;
-      case ExpenseCategory.bills:
-        return 0xFF6C63FF;
-      case ExpenseCategory.entertainment:
-        return 0xFFFF8C42;
-      case ExpenseCategory.others:
-        return 0xFFACB7C0;
-    }
   }
 }

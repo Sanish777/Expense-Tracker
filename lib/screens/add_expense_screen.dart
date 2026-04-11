@@ -4,7 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../providers/expense_provider.dart';
 import '../providers/budget_provider.dart';
-import '../models/category.dart';
+import '../providers/category_provider.dart';
+import '../models/app_category.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 
@@ -19,9 +20,21 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  ExpenseCategory _selectedCategory = ExpenseCategory.food;
+  AppCategory? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-select first category if available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final categories = context.read<CategoryProvider>().categories;
+      if (categories.isNotEmpty) {
+        setState(() => _selectedCategory = categories.first);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -50,18 +63,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Future<void> _save() async {
     final amountText = _amountController.text.trim();
     if (amountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter an amount'),
-        backgroundColor: AppTheme.danger,
-      ));
+      _showError('Please enter an amount');
       return;
     }
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter a valid amount'),
-        backgroundColor: AppTheme.danger,
-      ));
+      _showError('Please enter a valid amount');
+      return;
+    }
+
+    if (_selectedCategory == null) {
+      _showError('Please select a category');
       return;
     }
 
@@ -71,7 +83,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     await expProv.addExpense(
       amount: amount,
-      category: _selectedCategory.name,
+      category: _selectedCategory!.id,
       date: _selectedDate,
       note: _noteController.text.trim().isEmpty
           ? null
@@ -89,10 +101,16 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       _amountController.clear();
       _noteController.clear();
       setState(() {
-        _selectedCategory = ExpenseCategory.food;
         _selectedDate = DateTime.now();
       });
     }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: AppTheme.danger,
+    ));
   }
 
   @override
@@ -171,17 +189,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               const SizedBox(height: 12),
 
               // Category chips
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: ExpenseCategory.values.map((cat) {
-                  return CategoryChip(
-                    category: cat,
-                    isSelected: cat == _selectedCategory,
-                    onTap: () =>
-                        setState(() => _selectedCategory = cat),
+              Consumer<CategoryProvider>(
+                builder: (context, catProv, _) {
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: catProv.categories.map((cat) {
+                      return CategoryChip(
+                        category: cat,
+                        isSelected: cat.id == _selectedCategory?.id,
+                        onTap: () =>
+                            setState(() => _selectedCategory = cat),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
 
               const SizedBox(height: 24),

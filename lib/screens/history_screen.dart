@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../providers/expense_provider.dart';
-import '../models/category.dart';
+import '../providers/category_provider.dart';
+import '../models/app_category.dart';
 import '../widgets/expense_card.dart';
 import '../widgets/category_chip.dart';
 import '../theme/app_theme.dart';
@@ -13,6 +10,7 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expProv = context.watch<ExpenseProvider>();
+    final catProv = context.watch<CategoryProvider>();
     final expenses = expProv.filteredExpenses;
     final selected = expProv.categoryFilter;
 
@@ -23,14 +21,45 @@ class HistoryScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // ── Category filter row ─────────────────────────────────────────
+          // ── Time range filter row ───────────────────────────────────────
           SizedBox(
-            height: 52,
+            height: 48,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               children: [
-                // "All" chip
+                _TimeFilterChip(
+                  label: 'All Time',
+                  range: TimeRange.allTime,
+                  selected: expProv.timeFilter == TimeRange.allTime,
+                  onTap: () => expProv.setTimeFilter(TimeRange.allTime),
+                ),
+                _TimeFilterChip(
+                  label: 'This Month',
+                  range: TimeRange.thisMonth,
+                  selected: expProv.timeFilter == TimeRange.thisMonth,
+                  onTap: () => expProv.setTimeFilter(TimeRange.thisMonth),
+                ),
+                _TimeFilterChip(
+                  label: 'Last 7 Days',
+                  range: TimeRange.thisWeek,
+                  selected: expProv.timeFilter == TimeRange.thisWeek,
+                  onTap: () => expProv.setTimeFilter(TimeRange.thisWeek),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // ── Category filter row ─────────────────────────────────────────
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+              children: [
+                // "All Cat" chip
                 GestureDetector(
                   onTap: () => expProv.setCategoryFilter(null),
                   child: AnimatedContainer(
@@ -39,32 +68,36 @@ class HistoryScreen extends StatelessWidget {
                         horizontal: 14, vertical: 8),
                     margin: const EdgeInsets.only(right: 10),
                     decoration: BoxDecoration(
-                      gradient:
-                          selected == null ? AppTheme.primaryGradient : null,
                       color: selected == null
-                          ? null
+                          ? AppTheme.primary.withOpacity(0.15)
                           : Theme.of(context).cardTheme.color,
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selected == null ? AppTheme.primary : Colors.transparent,
+                        width: 1,
+                      ),
                     ),
-                    child: Text(
-                      '✨ All',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: selected == null
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: selected == null ? Colors.white : null,
+                    child: Center(
+                      child: Text(
+                        '✨ All',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: selected == null
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: selected == null ? AppTheme.primary : null,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                ...ExpenseCategory.values.map((cat) => Padding(
+                ...catProv.categories.map((cat) => Padding(
                       padding: const EdgeInsets.only(right: 10),
                       child: CategoryChip(
                         category: cat,
-                        isSelected: selected == cat.name,
+                        isSelected: selected == cat.id,
                         onTap: () => expProv.setCategoryFilter(
-                            selected == cat.name ? null : cat.name),
+                            selected == cat.id ? null : cat.id),
                       ),
                     )),
               ],
@@ -110,6 +143,51 @@ class HistoryScreen extends StatelessWidget {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TimeFilterChip extends StatelessWidget {
+  final String label;
+  final TimeRange range;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TimeFilterChip({
+    required this.label,
+    required this.range,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.only(right: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.accent
+              : Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: selected
+              ? [BoxShadow(color: AppTheme.accent.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? Colors.white : null,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -32,7 +32,7 @@ class CategoryManagementScreen extends StatelessWidget {
           if (provider.categories.isEmpty) {
             return Center(
               child: Column(
-                mainAxisAlignment: Main禮MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.category_outlined, size: 64, color: AppTheme.textMuted.withOpacity(0.5)),
                   const SizedBox(height: 16),

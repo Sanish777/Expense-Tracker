@@ -12,6 +12,7 @@ class ExpenseProvider extends ChangeNotifier {
 
   List<Expense> _expenses = [];
   String? _categoryFilter;
+  TimeRange _timeFilter = TimeRange.allTime;
   bool _isLoading = false;
 
   ExpenseProvider(this._db) {
@@ -22,10 +23,27 @@ class ExpenseProvider extends ChangeNotifier {
   List<Expense> get expenses => _expenses;
   bool get isLoading => _isLoading;
   String? get categoryFilter => _categoryFilter;
+  TimeRange get timeFilter => _timeFilter;
 
   List<Expense> get filteredExpenses {
-    if (_categoryFilter == null) return _expenses;
-    return _expenses.where((e) => e.category == _categoryFilter).toList();
+    var list = _expenses;
+    
+    // Time filtering
+    if (_timeFilter == TimeRange.thisMonth) {
+      final now = DateTime.now();
+      list = list.where((e) => e.date.year == now.year && e.date.month == now.month).toList();
+    } else if (_timeFilter == TimeRange.thisWeek) {
+      final now = DateTime.now();
+      final lastWeek = now.subtract(const Duration(days: 7));
+      list = list.where((e) => e.date.isAfter(lastWeek)).toList();
+    }
+
+    // Category filtering
+    if (_categoryFilter != null) {
+      list = list.where((e) => e.category == _categoryFilter).toList();
+    }
+    
+    return list;
   }
 
   double get monthlyTotal => _analytics.getMonthlyTotal(_expenses);
@@ -118,8 +136,15 @@ class ExpenseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setTimeFilter(TimeRange range) {
+    _timeFilter = range;
+    notifyListeners();
+  }
+
   Future<void> clearAll() async {
     await _db.clearAll();
     await _load();
   }
 }
+
+enum TimeRange { allTime, thisMonth, thisWeek }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../services/analytics_service.dart';
+import '../providers/category_provider.dart';
 import '../theme/app_theme.dart';
 
 class SpendingChart extends StatefulWidget {
@@ -59,8 +60,7 @@ class _SpendingChartState extends State<SpendingChart> {
                 centerSpaceRadius: 48,
                 sections: List.generate(entries.length, (i) {
                   final isTouched = i == _touchedIndex;
-                  final color =
-                      Color(AnalyticsService.categoryColor(entries[i].key));
+                  final color = AppTheme.primary;
                   return PieChartSectionData(
                     color: color,
                     value: entries[i].value,
@@ -84,8 +84,11 @@ class _SpendingChartState extends State<SpendingChart> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: entries.map((entry) {
-              final color =
-                  Color(AnalyticsService.categoryColor(entry.key));
+              final catProv = context.watch<CategoryProvider>();
+              final cat = catProv.findById(entry.key);
+              final label = cat?.title ?? 'Unknown';
+              
+              final color = AppTheme.primary;
               final pct = ((entry.value / total) * 100).toStringAsFixed(0);
               return Padding(
                 padding:
@@ -102,7 +105,7 @@ class _SpendingChartState extends State<SpendingChart> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${entry.key[0].toUpperCase()}${entry.key.substring(1)} $pct%',
+                      '$label $pct%',
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],

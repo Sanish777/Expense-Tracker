@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-import '../models/category.dart';
-import '../theme/app_theme.dart';
+import '../models/app_category.dart';
 
 class CategoryChip extends StatelessWidget {
-  final ExpenseCategory category;
+  final AppCategory category;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -37,7 +35,7 @@ class CategoryChip extends StatelessWidget {
             Text(category.emoji, style: const TextStyle(fontSize: 14)),
             const SizedBox(width: 6),
             Text(
-              category.label,
+              category.title,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight:

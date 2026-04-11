@@ -114,7 +114,10 @@ class InsightsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _SectionHeader(title: 'Detected Habits 📅'),
             ...habits.map((h) {
-              final cat = ExpenseCategory.fromString(h['category']);
+              final catProv = context.watch<CategoryProvider>();
+              final catId = h['category'];
+              final cat = catProv.findById(catId);
+              
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(14),
@@ -126,14 +129,14 @@ class InsightsScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Text(cat.emoji,
+                    Text(cat?.emoji ?? '📦',
                         style: const TextStyle(fontSize: 28)),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(cat.label,
+                          Text(cat?.title ?? 'Unknown',
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14)),

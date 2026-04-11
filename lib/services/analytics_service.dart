@@ -95,23 +95,4 @@ class AnalyticsService {
             })
         .toList();
   }
-
-  // ── Category colour mapping ───────────────────────────────────────────────
-  static int categoryColor(String category) {
-    final cat = ExpenseCategory.fromString(category);
-    switch (cat) {
-      case ExpenseCategory.food:
-        return 0xFFFF6B6B;
-      case ExpenseCategory.transport:
-        return 0xFF4ECDC4;
-      case ExpenseCategory.shopping:
-        return 0xFFFFE66D;
-      case ExpenseCategory.bills:
-        return 0xFF6C63FF;
-      case ExpenseCategory.entertainment:
-        return 0xFFFF8C42;
-      case ExpenseCategory.others:
-        return 0xFFACB7C0;
-    }
-  }
 }

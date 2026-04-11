@@ -2,16 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
-import '../providers/expense_provider.dart';
-import '../providers/budget_provider.dart';
-import '../models/category.dart';
+import '../providers/category_provider.dart';
+import '../models/app_category.dart';
 import '../services/ai_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/expense_card.dart';
 import '../widgets/budget_progress_bar.dart';
+import '../screens/add_expense_screen.dart';
+import '../screens/insights_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isBalanceVisible = true;
+
+  void _showComingSoon(BuildContext context, String action) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$action feature coming soon! 🚀'),
+        backgroundColor: AppTheme.primary,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +38,6 @@ class DashboardScreen extends StatelessWidget {
     final total = expProv.monthlyTotal;
     final topCat = expProv.topCategory;
     final overCat = expProv.overspendingCategory;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: CustomScrollView(
@@ -37,42 +54,25 @@ class DashboardScreen extends StatelessWidget {
                       bottomRight: Radius.circular(32),
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
+                  padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Greeting row
+                      // Greeting row (Profile Image Removed)
                       Row(
                         children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              image: const DecorationImage(
-                                image: AssetImage('assets/images/app_icon.png'),
-                                fit: BoxFit.cover,
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.5),
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text('Hello there! 👋',
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700)),
                               Text(
                                 DateFormat('EEEE, d MMMM').format(DateTime.now()),
                                 style: const TextStyle(
-                                    color: Colors.white60, fontSize: 12),
+                                    color: Colors.white60, fontSize: 13),
                               ),
                             ],
                           ),
@@ -90,17 +90,17 @@ class DashboardScreen extends StatelessWidget {
                         ],
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 32),
 
                       // Balance card
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                              color: Colors.white.withOpacity(0.2), width: 1),
+                              color: Colors.white.withOpacity(0.1), width: 1),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,29 +110,36 @@ class DashboardScreen extends StatelessWidget {
                                     color: Colors.white60,
                                     fontSize: 11,
                                     letterSpacing: 1.2,
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 8),
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 12),
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  'Rs. ${total.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
+                                Expanded(
+                                  child: Text(
+                                    _isBalanceVisible 
+                                        ? 'Rs. ${total.toStringAsFixed(0)}'
+                                        : 'Rs. •••••••',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 4),
-                                  child: Icon(Icons.visibility_outlined,
-                                      color: Colors.white54, size: 18),
+                                IconButton(
+                                  icon: Icon(
+                                    _isBalanceVisible 
+                                        ? Icons.visibility_outlined 
+                                        : Icons.visibility_off_outlined,
+                                    color: Colors.white70,
+                                  ),
+                                  onPressed: () => setState(() => _isBalanceVisible = !_isBalanceVisible),
                                 ),
                               ],
-                            ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2),
-                            const SizedBox(height: 16),
+                            ).animate().fadeIn(duration: 500.ms),
+                            const SizedBox(height: 20),
                             BudgetProgressBar(
                               spent: total,
                               limit: budProv.monthlyLimit,
@@ -141,19 +148,38 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
                       // Quick action buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _QuickAction(
-                              icon: Icons.swap_horiz_rounded, label: 'Transfer'),
-                          _QuickAction(icon: Icons.download_rounded, label: 'Income'),
+                            icon: Icons.swap_horiz_rounded,
+                            label: 'Transfer',
+                            onTap: () => _showComingSoon(context, 'Transfer'),
+                          ),
                           _QuickAction(
-                              icon: Icons.pie_chart_outline_rounded, label: 'Stats'),
+                            icon: Icons.download_rounded,
+                            label: 'Income',
+                            onTap: () => _showComingSoon(context, 'Income'),
+                          ),
                           _QuickAction(
-                              icon: Icons.add_rounded, label: 'Add'),
+                            icon: Icons.pie_chart_outline_rounded,
+                            label: 'Stats',
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const InsightsScreen()),
+                            ),
+                          ),
+                          _QuickAction(
+                            icon: Icons.add_rounded,
+                            label: 'Add',
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -326,8 +352,11 @@ class _TopCategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = ExpenseCategory.fromString(topCat);
+    final catProv = context.watch<CategoryProvider>();
+    final cat = catProv.findById(topCat);
     final total = expProv.categoryBreakdown[topCat] ?? 0;
+    final color = AppTheme.primary;
+    
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -335,7 +364,7 @@ class _TopCategoryRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withOpacity(0.06),
+            color: color.withOpacity(0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -347,11 +376,11 @@ class _TopCategoryRow extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppTheme.categoryColor(topCat).withOpacity(0.12),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Text(cat.emoji, style: const TextStyle(fontSize: 20)),
+              child: Text(cat?.emoji ?? '📦', style: const TextStyle(fontSize: 20)),
             ),
           ),
           const SizedBox(width: 12),
@@ -363,7 +392,7 @@ class _TopCategoryRow extends StatelessWidget {
                       fontSize: 11,
                       color: AppTheme.textMuted,
                       fontWeight: FontWeight.w500)),
-              Text(cat.label,
+              Text(cat?.title ?? 'Unknown',
                   style: TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700,
                       color: Theme.of(context).textTheme.bodyLarge?.color)),
@@ -374,7 +403,7 @@ class _TopCategoryRow extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.categoryColor(topCat))),
+                  color: color)),
         ],
       ),
     );
@@ -388,8 +417,10 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = ExpenseCategory.fromString(expense.category);
-    final color = AppTheme.categoryColor(expense.category);
+    final catProv = context.watch<CategoryProvider>();
+    final cat = catProv.findById(expense.category);
+    final color = AppTheme.primary;
+
     return Dismissible(
       key: Key(expense.id),
       direction: DismissDirection.endToStart,
@@ -428,7 +459,7 @@ class _TransactionTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
-                child: Text(cat.emoji,
+                child: Text(cat?.emoji ?? '📦',
                     style: const TextStyle(fontSize: 22)),
               ),
             ),
@@ -437,7 +468,7 @@ class _TransactionTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cat.label,
+                  Text(cat?.title ?? 'Unknown',
                       style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
