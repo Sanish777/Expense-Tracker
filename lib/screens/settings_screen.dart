@@ -220,8 +220,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings'),
-          automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        automaticallyImplyLeading: false,
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return IconButton(
+                icon: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  color: isDark ? Colors.amber : Colors.blueGrey,
+                ),
+                onPressed: () {
+                  themeProvider.setThemeMode(
+                    isDark ? ThemeMode.light : ThemeMode.dark,
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
@@ -267,54 +288,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ).animate().fadeIn(delay: 200.ms),
 
-          const SizedBox(height: 28),
-          const _SectionLabel(label: 'Appearance'),
-
-          // Theme toggle
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2)),
-              ],
-            ),
-            child: Consumer<ThemeProvider>(
-              builder: (context, themeProvider, _) {
-                final isDark = Theme.of(context).brightness == Brightness.dark;
-                return SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                        color: AppTheme.primary, size: 20),
-                  ),
-                  title: Text('Dark Mode',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 14,
-                          color: Theme.of(context).textTheme.bodyLarge?.color)),
-                  subtitle: Text('Toggle dark/light theme',
-                      style:
-                          TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-                  value: isDark,
-                  activeColor: AppTheme.primary,
-                  onChanged: (v) {
-                    themeProvider.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
-                  },
-                );
-              },
-            ),
-          ).animate().fadeIn(delay: 250.ms),
 
           const SizedBox(height: 28),
           const _SectionLabel(label: 'Notifications & Testing'),
