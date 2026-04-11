@@ -1,0 +1,42 @@
+# Dependencies
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# Build output (the Dockerfile builds fresh)
+build/
+
+# IDE / editor files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Tests
+test/
+
+# Local env overrides
+*.env
+.env*
+
+# Firebase (not needed at build time)
+google-services.json
+GoogleService-Info.plist
+
+# Documentation
+*.md
+!README.md
+
+# Docker files themselves (avoid recursive COPY)
+Dockerfile
+docker-compose.yml

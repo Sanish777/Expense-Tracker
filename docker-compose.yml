@@ -1,0 +1,23 @@
+services:
+  spendwise_web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        FLUTTER_VERSION: "3.19.6"
+    image: spendwise-ai:latest
+    container_name: spendwise_ai
+    ports:
+      - "8080:80"          # App available at http://localhost:8080
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Kathmandu  # Adjust to your timezone
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.spendwise.description=SpendWise AI Flutter Web App"
+      - "com.spendwise.version=1.0.0"
