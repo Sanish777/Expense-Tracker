@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../screens/login_screen.dart';
 import '../app.dart';
 
@@ -42,12 +43,11 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // ── Image-based Logo ───────────────────────────
             Image.asset(
-              'assets/images/app_icon.png',
+              isDark ? 'assets/images/app_icon_light.png' : 'assets/images/app_icon_dark.png',
               width: 140,
               height: 140,
-              color: isDark ? Colors.white : Colors.black,
-              colorBlendMode: BlendMode.srcIn,
             )
                 .animate(onPlay: (controller) => controller.repeat())
                 .shimmer(delay: 1000.ms, duration: 2000.ms, color: isDark ? Colors.white24 : Colors.black12),

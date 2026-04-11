@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../app.dart';
@@ -104,18 +105,17 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Logo (Tinted based on theme)
+              // ── Image-based Logo ───────────────────────────
               Image.asset(
-                'assets/images/app_icon.png',
+                Theme.of(context).brightness == Brightness.dark
+                    ? 'assets/images/app_icon_light.png'
+                    : 'assets/images/app_icon_dark.png',
                 width: 100,
                 height: 100,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-                colorBlendMode: BlendMode.srcIn,
               )
                   .animate(onPlay: (c) => c.repeat())
-                  .shimmer(delay: 1500.ms, duration: 2000.ms, color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
+                  .shimmer(delay: 1500.ms, duration: 2000.ms, 
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
               
               const SizedBox(height: 24),
               const Text(
