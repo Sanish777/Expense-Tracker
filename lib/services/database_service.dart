@@ -72,8 +72,9 @@ class DatabaseService {
 
         // Seed admin user
         await db.insert('users', {
+          'id': 'admin_user',
           'username': 'admin',
-          'password_hash': '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' // admin123
+          'password_hash': '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4' // 1234
         });
 
         // Seed default categories
@@ -263,10 +264,27 @@ class DatabaseService {
     return maps.first['value'];
   }
 
-  // ── Export ────────────────────────────────────────────────────────────────
+  // ── Import / Export ───────────────────────────────────────────────────────
 
   Future<File> getDatabaseFile() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    return File(join(docsDir.path, dbName));
+    final dbPath = await getDatabasesPath();
+    return File(join(dbPath, dbName));
+  }
+
+  Future<void> importDatabase(File sourceFile) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, dbName);
+
+    // Close existing connection to release locks
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+
+    // Overwrite the existing file with the imported one
+    await sourceFile.copy(path);
+
+    // Reinitialize
+    _database = await _initDatabase();
   }
 }

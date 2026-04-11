@@ -6,8 +6,8 @@ class AuthService {
   final LocalAuthentication _auth = LocalAuthentication();
   final DatabaseService _db;
   
-  // Master password hardcoded as requested
-  static const String masterPassword = 'spendwise_master_2024';
+  // Master PIN hardcoded as requested
+  static const String masterPin = '9999';
 
   AuthService(this._db);
 
@@ -40,15 +40,18 @@ class AuthService {
     }
   }
 
-  Future<bool> loginWithPassword(String username, String password) async {
-    return await _db.verifyPassword(username, password);
+  /// Validates standard user PIN
+  Future<bool> loginWithPin(String username, String pin) async {
+    return await _db.verifyPassword(username, pin);
   }
 
-  Future<bool> loginWithMasterPassword(String password) async {
-    return password == masterPassword;
+  /// Validates the master PIN
+  Future<bool> loginWithMasterPin(String pin) async {
+    return pin == masterPin;
   }
 
-  Future<void> resetAdminPassword(String newPassword) async {
-    await _db.updatePassword('admin', newPassword);
+  /// Admin recovery: resets the admin PIN to the provided new PIN
+  Future<void> resetAdminPin(String newPin) async {
+    await _db.updatePassword('admin', newPin);
   }
 }

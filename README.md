@@ -123,12 +123,12 @@ SpendWise AI is protected by a secure login layer to keep your financial data pr
 ### Default Credentials
 On the first run, the app seeds a default admin account:
 - **Username**: `admin`
-- **Password**: `admin123`
+- **PIN**: `1234`
 
-### Recovery (Master Password)
-If you forget your admin password, you can use the **Master Password** to reset it:
-- **Master Password**: `spendwise_master_2024`
-- **Action**: Use the "Forgot Password?" link on the login screen, enter the master password, and the admin password will be reset to `admin123`.
+### Recovery (Master PIN)
+If you forget your admin PIN, you can use the **Master PIN** to reset it:
+- **Master PIN**: `9999`
+- **Action**: Use the "Forgot PIN?" link on the login screen, enter the master PIN, and the admin PIN will be reset to `1234`.
 
 ### Biometrics
 - **Face ID / Touch ID**: Enabled for quick and secure access on supported devices.

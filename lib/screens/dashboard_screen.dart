@@ -214,39 +214,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 children: [
                   if (overCat != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(16),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const InsightsScreen()),
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardTheme.color,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
                             ),
-                            child: const Text('💡',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 20)),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Let's check your Financial Insight – overspending on $overCat!",
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Text('💡',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 20)),
                             ),
-                          ),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: AppTheme.primary),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                "Let's check your Financial Insight – overspending on $overCat!",
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color),
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded,
+                                color: AppTheme.primary),
+                          ],
+                        ),
                       ),
                     ).animate().fadeIn(duration: 400.ms),
 

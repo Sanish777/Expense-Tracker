@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -11,6 +13,9 @@ import '../theme/app_theme.dart';
 import '../screens/login_screen.dart';
 import '../screens/category_management_screen.dart';
 import '../screens/budget_settings_screen.dart';
+import '../screens/change_pin_screen.dart';
+import '../widgets/pin_pad.dart';
+import '../app.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -89,65 +94,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _changePassword() async {
-    final oldController = TextEditingController();
-    final newController = TextEditingController();
-    
-    bool obscureOld = true;
-    bool obscureNew = true;
-
+  Future<void> _importDatabase() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Change Admin Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: oldController,
-                obscureText: obscureOld,
-                decoration: InputDecoration(
-                  labelText: 'Current Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(obscureOld ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
-                    onPressed: () => setDialogState(() => obscureOld = !obscureOld),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: newController,
-                obscureText: obscureNew,
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
-                    onPressed: () => setDialogState(() => obscureNew = !obscureNew),
-                  ),
-                ),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Import Database',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text(
+            'Warning: This will completely replace your current database and restart your session. Ensure you have backed up your current data. Proceed?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Update')),
-          ],
-        ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.danger, foregroundColor: Colors.white),
+            child: const Text('Import'),
+          ),
+        ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      final auth = context.read<AuthService>();
-      final isOldCorrect = await auth.loginWithPassword('admin', oldController.text);
-      
-      if (isOldCorrect) {
-        await auth.resetAdminPassword(newController.text);
-        _showToast('Password updated successfully!', isError: false);
-      } else {
-        _showToast('Current password incorrect', isError: true);
+      try {
+        FilePickerResult? result = await FilePicker.pickFiles();
+        if (result != null && result.files.single.path != null) {
+          File file = File(result.files.single.path!);
+          await DatabaseService().importDatabase(file);
+          
+          if (!mounted) return;
+          await context.read<ExpenseProvider>().reloadData();
+          await context.read<BudgetProvider>().reloadData();
+          
+          _showToast('Database imported successfully!', isError: false);
+          
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const MainShell()),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) _showToast('Failed to import database: $e', isError: true);
       }
     }
+  }
+
+  Future<void> _changePin() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChangePinScreen()),
+    );
   }
 
   Future<void> _toggleBiometrics(bool enabled) async {
@@ -157,53 +157,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
 
-    final passController = TextEditingController();
-    bool obscurePass = true;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Enable Face ID'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter admin password to enable biometric login.'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passController,
-                obscureText: obscurePass,
-                decoration: InputDecoration(
-                  labelText: 'Admin Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20),
-                    onPressed: () => setDialogState(() => obscurePass = !obscurePass),
-                  ),
-                ),
-              ),
-            ],
+    final isCorrect = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(
+            leading: const BackButton(),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verify')),
-          ],
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: PinPad(
+            title: 'Verify PIN',
+            subtitle: 'Enter Admin PIN to enable Face ID',
+            onCompleted: (pin) async {
+              final auth = context.read<AuthService>();
+              final valid = await auth.loginWithPin('admin', pin);
+              Navigator.pop(context, valid);
+            },
+          ),
         ),
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (isCorrect == true && mounted) {
       final auth = context.read<AuthService>();
-      final isCorrect = await auth.loginWithPassword('admin', passController.text);
-      
-      if (isCorrect) {
-        final authenticated = await auth.authenticateWithBiometrics();
-        if (authenticated) {
-          await auth.setBiometricEnabled(true);
-          setState(() => _isBiometricEnabled = true);
-          _showToast('Face ID enabled!', isError: false);
-        }
-      } else {
-        _showToast('Incorrect password', isError: true);
+      final authenticated = await auth.authenticateWithBiometrics();
+      if (authenticated) {
+        await auth.setBiometricEnabled(true);
+        setState(() => _isBiometricEnabled = true);
+        _showToast('Face ID enabled!', isError: false);
       }
+    } else if (isCorrect == false && mounted) {
+      _showToast('Incorrect PIN', isError: true);
     }
   }
 
@@ -414,6 +400,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 12),
 
+          // Import
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.download_rounded,
+                    color: AppTheme.primary, size: 20),
+              ),
+              title: const Text('Import Database',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Restore data from a .db file',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: _importDatabase,
+            ),
+          ).animate().fadeIn(delay: 315.ms),
+
+          const SizedBox(height: 12),
+
           // Clear all
           Container(
             decoration: BoxDecoration(
@@ -455,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 28),
           const _SectionLabel(label: 'Security & Access 🛡️'),
 
-          // Security (Change Password)
+          // Security (Change PIN)
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color,
@@ -480,19 +505,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Icon(Icons.lock_outline_rounded,
                     color: AppTheme.primary, size: 20),
               ),
-              title: const Text('Update Password',
+              title: const Text('Update PIN',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14)),
-              subtitle: const Text('Change your admin access password',
+              subtitle: const Text('Change your admin access PIN',
                   style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               trailing: const Icon(Icons.chevron_right_rounded,
                   color: AppTheme.primary),
-              onTap: _changePassword,
+              onTap: _changePin,
             ),
           ).animate().fadeIn(delay: 330.ms),
 
           const SizedBox(height: 12),
+
+          if (_isBiometricSupported) ...[
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2)),
+                ],
+              ),
+              child: SwitchListTile(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                secondary: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.face_unlock_rounded,
+                      color: AppTheme.accent, size: 20),
+                ),
+                title: const Text('Face ID / Biometrics',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
+                subtitle: const Text('Login securely with biometrics',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                value: _isBiometricEnabled,
+                activeColor: AppTheme.accent,
+                onChanged: _toggleBiometrics,
+              ),
+            ).animate().fadeIn(delay: 335.ms),
+            const SizedBox(height: 12),
+          ],
 
           // Logout
           Container(

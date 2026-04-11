@@ -69,6 +69,10 @@ class ExpenseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> reloadData() async {
+    await _load();
+  }
+
   Future<void> addExpense({
     required double amount,
     required String category,

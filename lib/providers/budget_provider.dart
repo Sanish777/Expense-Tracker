@@ -20,6 +20,10 @@ class BudgetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> reloadData() async {
+    await _load();
+  }
+
   Future<void> saveBudget({
     required double monthlyLimit,
     required double dailyLimit,

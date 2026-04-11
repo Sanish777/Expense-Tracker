@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../widgets/pin_pad.dart';
 import '../theme/app_theme.dart';
 import '../app.dart';
 
@@ -14,10 +15,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _passwordController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _isLoading = false;
-  bool _showMasterPassField = false;
-  bool _obscurePassword = true;
+  bool _showMasterPinField = false;
+  bool _obscurePin = true;
 
   bool _isBiometricSupported = false;
   bool _isBiometricEnabled = false;
@@ -38,9 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _handlePasswordLogin() async {
-    final password = _passwordController.text.trim();
-    if (password.isEmpty) return;
+  Future<void> _handlePinLogin() async {
+    final pin = _pinController.text.trim();
+    if (pin.isEmpty) return;
 
     setState(() => _isLoading = true);
     
@@ -48,20 +49,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final auth = context.read<AuthService>();
       
       bool success;
-      if (_showMasterPassField) {
-        success = await auth.loginWithMasterPassword(password);
+      if (_showMasterPinField) {
+        success = await auth.loginWithMasterPin(pin);
         if (success) {
-          await auth.resetAdminPassword('admin123');
-          _showSuccess('Password reset to admin123. Please change it!');
+          await auth.resetAdminPin('1234');
+          _showSuccess('PIN reset to 1234. Please change it!');
         }
       } else {
-        success = await auth.loginWithPassword('admin', password);
+        success = await auth.loginWithPin('admin', pin);
       }
 
       if (success) {
         _enterApp();
       } else {
-        _showError(_showMasterPassField ? 'Invalid Master Password' : 'Wrong Password');
+        _showError(_showMasterPinField ? 'Invalid Master PIN' : 'Wrong PIN');
       }
     } catch (e) {
       _showError('Login error: $e');
@@ -104,112 +105,48 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(),
-              // ── Image-based Logo ───────────────────────────
-              Image.asset(
-                Theme.of(context).brightness == Brightness.dark
-                    ? 'assets/images/app_icon_light.png'
-                    : 'assets/images/app_icon_dark.png',
-                width: 100,
-                height: 100,
-              )
-                  .animate(onPlay: (c) => c.repeat())
-                  .shimmer(delay: 1500.ms, duration: 2000.ms, 
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
-              
-              const SizedBox(height: 24),
-              const Text(
-                'Wise Expense',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
-              ).animate().fadeIn(delay: 400.ms),
+// ── Login UI ───────────────────────────
+              Expanded(
+                child: PinPad(
+                  headerLogo: Image.asset(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? 'assets/images/app_icon_light.png'
+                        : 'assets/images/app_icon_dark.png',
+                    width: 80,
+                    height: 80,
+                  )
+                      .animate(onPlay: (c) => c.repeat())
+                      .shimmer(delay: 1500.ms, duration: 2000.ms, 
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
+                  title: _isLoading 
+                      ? 'Verifying...'
+                      : (_showMasterPinField ? 'Enter Master PIN' : 'Enter your PIN'),
+                  subtitle: _showMasterPinField ? 'Used to reset admin PIN' : null,
+                  showBiometrics: !_showMasterPinField && _isBiometricEnabled,
+                  onBiometricsTap: _handleBiometricLogin,
+                  onCompleted: (pin) {
+                    _pinController.text = pin;
+                    _handlePinLogin();
+                  },
+                ).animate().fadeIn(delay: 200.ms),
+              ),
 
-              const Spacer(),
-
-              // Login card
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: TextButton(
+                  onPressed: () {
+                    // Slight delay to allow focus/pin clearing
+                    setState(() {
+                      _showMasterPinField = !_showMasterPinField;
+                      _pinController.clear();
+                    });
+                  },
+                  child: Text(
+                    _showMasterPinField ? 'Back to Login' : 'Forgot PIN?',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      _showMasterPassField ? 'Reset Password' : 'Welcome Back',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 24),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        hintText: _showMasterPassField ? 'Enter Master Password' : 'Enter Admin Password',
-                        prefixIcon: const Icon(Icons.lock_rounded),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            size: 20,
-                          ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                        filled: true,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handlePasswordLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                          foregroundColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.black
-                              : Colors.white,
-                        ),
-                        child: _isLoading 
-                          ? CircularProgressIndicator(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.black
-                                  : Colors.white)
-                          : Text(_showMasterPassField ? 'Unlock & Reset' : 'Login'),
-                      ),
-                    ),
-                    if (!_showMasterPassField && _isBiometricEnabled) ...[
-                      const SizedBox(height: 16),
-                      TextButton.icon(
-                        onPressed: _handleBiometricLogin,
-                        icon: const Icon(Icons.face_unlock_rounded),
-                        label: const Text('Login with Face ID'),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => setState(() => _showMasterPassField = !_showMasterPassField),
-                      child: Text(
-                        _showMasterPassField ? 'Back to Login' : 'Forgot Password?',
-                        style: TextStyle(color: AppTheme.textMuted),
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate().slideY(begin: 0.2, delay: 600.ms).fadeIn(),
-
-              const Spacer(flex: 2),
+              ),
             ],
           ),
         ),
