@@ -1,4 +1,4 @@
-# SpendWise AI Architecture Overview
+# Wise Expense Architecture Overview
 
 This document outlines the architectural design and system flow of the **SpendWise AI** application.
 

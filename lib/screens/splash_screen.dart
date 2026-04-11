@@ -42,28 +42,27 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Image.asset(
               'assets/images/app_icon.png',
-              width: 120,
-              height: 120,
+              width: 140,
+              height: 140,
             )
-                .animate()
-                .fadeIn(duration: 800.ms)
+                .animate(onPlay: (controller) => controller.repeat(reverse: true))
                 .scale(
-                  begin: const Offset(0.8, 0.8),
-                  end: const Offset(1.0, 1.0),
-                  curve: Curves.easeOutBack,
-                  duration: 800.ms,
+                  begin: const Offset(0.9, 0.9),
+                  end: const Offset(1.1, 1.1),
+                  duration: 2000.ms,
+                  curve: Curves.easeInOutQuad,
                 )
-                .shimmer(delay: 1200.ms, duration: 1500.ms, color: Colors.white24),
-            const SizedBox(height: 24),
-            Text(
-              'SpendWise AI',
+                .shimmer(delay: 1000.ms, duration: 2000.ms, color: Colors.black12),
+            const SizedBox(height: 32),
+            const Text(
+              'Wise Expense',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF7B61FF), // Brand primary
-                letterSpacing: 1.2,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+                letterSpacing: 2.0,
               ),
-            ).animate().fadeIn(delay: 400.ms, duration: 800.ms).slideY(begin: 0.2, end: 0),
+            ).animate().fadeIn(delay: 400.ms, duration: 1000.ms).slideY(begin: 0.2, end: 0),
           ],
         ),
       ),

@@ -6,26 +6,29 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import '../models/expense.dart';
 import '../models/budget.dart';
+import '../models/app_category.dart';
 
 class DatabaseService {
-  static Database? _db;
-  static const String dbName = 'spendwise.db';
+  static final DatabaseService _instance = DatabaseService._internal();
+  factory DatabaseService() => _instance;
+  DatabaseService._internal();
+
+  Database? _database;
 
   Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDb();
-    return _db!;
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
   }
 
-  Future<Database> _initDb() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final path = join(docsDir.path, dbName);
+  Future<Database> _initDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'wise_expense.db');
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        // Expenses table
         await db.execute('''
           CREATE TABLE expenses(
             id TEXT PRIMARY KEY,
@@ -36,7 +39,6 @@ class DatabaseService {
           )
         ''');
 
-        // Budget table
         await db.execute('''
           CREATE TABLE budgets(
             id TEXT PRIMARY KEY,
@@ -45,7 +47,6 @@ class DatabaseService {
           )
         ''');
 
-        // Settings table
         await db.execute('''
           CREATE TABLE settings(
             key TEXT PRIMARY KEY,
@@ -53,24 +54,82 @@ class DatabaseService {
           )
         ''');
 
-        // Users table (for Auth)
         await db.execute('''
           CREATE TABLE users(
             username TEXT PRIMARY KEY,
-            password_hash TEXT,
-            is_admin INTEGER
+            passwordHash TEXT
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE categories(
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            emoji TEXT
           )
         ''');
 
         // Seed admin user
-        final adminPassHash = _hashPassword('admin123');
         await db.insert('users', {
           'username': 'admin',
-          'password_hash': adminPassHash,
-          'is_admin': 1,
+          'passwordHash': '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' // admin123
         });
+
+        // Seed default categories
+        final defaultCategories = [
+          {'id': 'food', 'title': 'Food', 'emoji': '🍔'},
+          {'id': 'transport', 'title': 'Transport', 'emoji': '🚌'},
+          {'id': 'shopping', 'title': 'Shopping', 'emoji': '🛒'},
+          {'id': 'bills', 'title': 'Bills', 'emoji': '💡'},
+          {'id': 'entertainment', 'title': 'Entertainment', 'emoji': '🎬'},
+          {'id': 'others', 'title': 'Others', 'emoji': '📦'},
+        ];
+        for (var cat in defaultCategories) {
+          await db.insert('categories', cat);
+        }
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE categories(
+              id TEXT PRIMARY KEY,
+              title TEXT,
+              emoji TEXT
+            )
+          ''');
+          // Seed for existing users
+          final defaultCategories = [
+            {'id': 'food', 'title': 'Food', 'emoji': '🍔'},
+            {'id': 'transport', 'title': 'Transport', 'emoji': '🚌'},
+            {'id': 'shopping', 'title': 'Shopping', 'emoji': '🛒'},
+            {'id': 'bills', 'title': 'Bills', 'emoji': '💡'},
+            {'id': 'entertainment', 'title': 'Entertainment', 'emoji': '🎬'},
+            {'id': 'others', 'title': 'Others', 'emoji': '📦'},
+          ];
+          for (var cat in defaultCategories) {
+            await db.insert('categories', cat);
+          }
+        }
       },
     );
+  }
+
+  // ── Categories ─────────────────────────────────────────────────────────────
+
+  Future<List<AppCategory>> getCategories() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('categories');
+    return List.generate(maps.length, (i) => AppCategory.fromMap(maps[i]));
+  }
+
+  Future<void> insertCategory(AppCategory category) async {
+    final db = await database;
+    await db.insert('categories', category.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> deleteCategory(String id) async {
+    final db = await database;
+    await db.delete('categories', where: 'id = ?', whereArgs: [id]);
   }
 
   String _hashPassword(String password) {

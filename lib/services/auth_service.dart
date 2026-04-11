@@ -11,6 +11,15 @@ class AuthService {
 
   AuthService(this._db);
 
+  Future<bool> isBiometricEnabled() async {
+    final val = await _db.getSetting('is_biometric_enabled');
+    return val == 'true';
+  }
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    await _db.saveSetting('is_biometric_enabled', enabled.toString());
+  }
+
   Future<bool> canAuthenticate() async {
     return await _auth.canCheckBiometrics || await _auth.isDeviceSupported();
   }

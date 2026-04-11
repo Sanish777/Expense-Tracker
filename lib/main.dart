@@ -25,6 +25,9 @@ void main() async {
         Provider<DatabaseService>.value(value: dbService),
         Provider<AuthService>(create: (ctx) => AuthService(ctx.read<DatabaseService>())),
         ChangeNotifierProvider(
+          create: (_) => CategoryProvider(DatabaseService()),
+        ),
+        ChangeNotifierProvider(
           create: (ctx) => ExpenseProvider(ctx.read<DatabaseService>()),
         ),
         ChangeNotifierProvider(

@@ -17,6 +17,25 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _showMasterPassField = false;
 
+  bool _isBiometricSupported = false;
+  bool _isBiometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricStatus();
+  }
+
+  Future<void> _checkBiometricStatus() async {
+    final auth = context.read<AuthService>();
+    final supported = await auth.canAuthenticate();
+    final enabled = await auth.isBiometricEnabled();
+    setState(() {
+      _isBiometricSupported = supported;
+      _isBiometricEnabled = enabled;
+    });
+  }
+
   Future<void> _handlePasswordLogin() async {
     final password = _passwordController.text.trim();
     if (password.isEmpty) return;
@@ -28,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_showMasterPassField) {
       success = await auth.loginWithMasterPassword(password);
       if (success) {
-        // Reset admin password to something temporary if master pass used
         await auth.resetAdminPassword('admin123');
         _showSuccess('Password reset to admin123. Please change it!');
       }
@@ -47,12 +65,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleBiometricLogin() async {
     final auth = context.read<AuthService>();
-    if (await auth.canAuthenticate()) {
-      final success = await auth.authenticateWithBiometrics();
-      if (success) _enterApp();
-    } else {
-      _showError('Biometrics not available');
-    }
+    final success = await auth.authenticateWithBiometrics();
+    if (success) _enterApp();
   }
 
   void _enterApp() {
@@ -98,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: 24),
               const Text(
-                'SpendWise AI',
+                'Wise Expense',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -151,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           : Text(_showMasterPassField ? 'Unlock & Reset' : 'Login'),
                       ),
                     ),
-                    if (!_showMasterPassField) ...[
+                    if (!_showMasterPassField && _isBiometricEnabled) ...[
                       const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: _handleBiometricLogin,

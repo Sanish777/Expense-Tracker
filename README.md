@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💸 SpendWise AI
+# 💸 Wise Expense
 
 ### Smart Cross-Platform Expense Tracker
 

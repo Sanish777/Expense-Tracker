@@ -9,6 +9,7 @@ import '../services/database_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../screens/login_screen.dart';
+import '../screens/category_management_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,16 +21,26 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _monthlyController = TextEditingController();
   final _dailyController = TextEditingController();
+  bool _isBiometricEnabled = false;
+  bool _isBiometricSupported = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final budget = context.read<BudgetProvider>().budget;
       if (budget != null) {
         _monthlyController.text = budget.monthlyLimit.toStringAsFixed(0);
         _dailyController.text = budget.dailyLimit.toStringAsFixed(0);
       }
+      
+      final auth = context.read<AuthService>();
+      final supported = await auth.canAuthenticate();
+      final enabled = await auth.isBiometricEnabled();
+      setState(() {
+        _isBiometricSupported = supported;
+        _isBiometricEnabled = enabled;
+      });
     });
   }
 
@@ -149,6 +160,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _showToast('Password updated successfully!', isError: false);
       } else {
         _showToast('Current password incorrect', isError: true);
+      }
+    }
+  }
+
+  Future<void> _toggleBiometrics(bool enabled) async {
+    if (!enabled) {
+      await context.read<AuthService>().setBiometricEnabled(false);
+      setState(() => _isBiometricEnabled = false);
+      return;
+    }
+
+    final passController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Enable Face ID'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter admin password to enable biometric login.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Admin Password'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verify')),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final auth = context.read<AuthService>();
+      final isCorrect = await auth.loginWithPassword('admin', passController.text);
+      
+      if (isCorrect) {
+        final authenticated = await auth.authenticateWithBiometrics();
+        if (authenticated) {
+          await auth.setBiometricEnabled(true);
+          setState(() => _isBiometricEnabled = true);
+          _showToast('Face ID enabled!', isError: false);
+        }
+      } else {
+        _showToast('Incorrect password', isError: true);
       }
     }
   }
@@ -394,6 +453,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _exportDatabase,
             ),
           ).animate().fadeIn(delay: 290.ms),
+
+          const SizedBox(height: 12),
+
+          // Biometric Toggle
+          if (_isBiometricSupported)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2)),
+                ],
+              ),
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.face_unlock_rounded,
+                      color: AppTheme.accent, size: 20),
+                ),
+                title: const Text('Biometric Login',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Unlock app with Face ID',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                value: _isBiometricEnabled,
+                activeColor: AppTheme.accent,
+                onChanged: _toggleBiometrics,
+              ),
+            ).animate().fadeIn(delay: 295.ms),
+
+          if (_isBiometricSupported) const SizedBox(height: 12),
+
+          if (_isBiometricSupported) const SizedBox(height: 12),
+
+          // Manage Categories
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.category_rounded,
+                    color: AppTheme.primary, size: 20),
+              ),
+              title: const Text('Manage Categories',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14)),
+              subtitle: const Text('Add or edit your expense categories',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CategoryManagementScreen()),
+              ),
+            ),
+          ).animate().fadeIn(delay: 300.ms),
 
           const SizedBox(height: 12),
 
