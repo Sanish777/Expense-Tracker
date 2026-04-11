@@ -29,12 +29,19 @@ RUN flutter config --no-analytics \
   && flutter precache --web \
   && flutter doctor --android-licenses || true
 
+# Create a non-root user
+RUN groupadd -g 1000 flutteruser && \
+    useradd -u 1000 -g flutteruser -m flutteruser && \
+    chown -R flutteruser:flutteruser /flutter
+
+USER flutteruser
 WORKDIR /app
-COPY pubspec.yaml pubspec.lock* ./
+
+COPY --chown=flutteruser:flutteruser pubspec.yaml pubspec.lock* ./
 RUN flutter pub get
 
 # Copy source
-COPY . .
+COPY --chown=flutteruser:flutteruser . .
 
 # Build Flutter web (release)
 RUN flutter build web --release --web-renderer canvaskit

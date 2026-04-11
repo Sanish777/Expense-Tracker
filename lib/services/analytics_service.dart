@@ -10,6 +10,17 @@ class AnalyticsService {
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
+  // ── Daily Total ──────────────────────────────────────────────────────────
+  double getDailyTotal(List<Expense> expenses) {
+    final now = DateTime.now();
+    return expenses
+        .where((e) =>
+            e.date.year == now.year &&
+            e.date.month == now.month &&
+            e.date.day == now.day)
+        .fold(0.0, (sum, e) => sum + e.amount);
+  }
+
   // ── Category Breakdown ────────────────────────────────────────────────────
   Map<String, double> getCategoryBreakdown(List<Expense> expenses) {
     final now = DateTime.now();

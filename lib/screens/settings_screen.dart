@@ -231,6 +231,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ).animate().fadeIn(delay: 250.ms),
 
           const SizedBox(height: 28),
+          const _SectionLabel(label: 'Notifications & Testing'),
+
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2)),
+              ],
+            ),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.notifications_active_outlined,
+                    color: AppTheme.primary, size: 20),
+              ),
+              title: const Text('Test Weekly Summary',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppTheme.textDark)),
+              subtitle: const Text('Show a notification with your weekly spend',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.primary),
+              onTap: () => context.read<ExpenseProvider>().triggerWeeklySummary(),
+            ),
+          ).animate().fadeIn(delay: 280.ms),
+
+          const SizedBox(height: 28),
           const _SectionLabel(label: 'Data'),
 
           // Clear all

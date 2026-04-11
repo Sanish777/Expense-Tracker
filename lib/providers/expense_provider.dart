@@ -66,23 +66,46 @@ class ExpenseProvider extends ChangeNotifier {
     _isLoading = false;
 
     // Budget alert check
-    if (budget != null && budget.monthlyLimit > 0) {
+    if (budget != null) {
       final newTotal = _analytics.getMonthlyTotal(_expenses);
-      if (newTotal > budget.monthlyLimit) {
+      final dailyTotal = _analytics.getDailyTotal(_expenses);
+
+      // Daily limit check
+      if (budget.dailyLimit > 0 && dailyTotal > budget.dailyLimit) {
         await NotificationService.showBudgetAlert(
-          title: 'Budget Exceeded! 🚨',
-          body:
-              'You\'ve spent Rs. ${newTotal.toStringAsFixed(0)} – over your Rs. ${budget.monthlyLimit.toStringAsFixed(0)} limit.',
+          title: 'Daily Limit Exceeded! ⚠️',
+          body: 'You've spent Rs. ${dailyTotal.toStringAsFixed(0)} today, '
+              'exceeding your Rs. ${budget.dailyLimit.toStringAsFixed(0)} daily limit.',
         );
-      } else if (newTotal > budget.monthlyLimit * 0.8) {
-        await NotificationService.showBudgetAlert(
-          title: 'Budget Warning ⚠️',
-          body:
-              '80% of your monthly budget used. Only Rs. ${(budget.monthlyLimit - newTotal).toStringAsFixed(0)} left.',
-        );
+      }
+
+      // Monthly limit check
+      if (budget.monthlyLimit > 0) {
+        if (newTotal > budget.monthlyLimit) {
+          await NotificationService.showBudgetAlert(
+            title: 'Monthly Budget Exceeded! 🚨',
+            body: 'You've spent Rs. ${newTotal.toStringAsFixed(0)} – '
+                'over your Rs. ${budget.monthlyLimit.toStringAsFixed(0)} limit.',
+          );
+        } else if (newTotal > budget.monthlyLimit * 0.8) {
+          await NotificationService.showBudgetAlert(
+            title: 'Monthly Budget Warning ⚠️',
+            body: '80% of your monthly budget used. '
+                'Only Rs. ${(budget.monthlyLimit - newTotal).toStringAsFixed(0)} left.',
+          );
+        }
       }
     }
     notifyListeners();
+  }
+
+  Future<void> triggerWeeklySummary() async {
+    final summary = _analytics.getWeeklySummary(_expenses);
+    final total = summary.fold(0.0, (sum, item) => sum + (item['total'] as double));
+    await NotificationService.showWeeklySummary(
+      body: 'You spent Rs. ${total.toStringAsFixed(0)} this week. '
+          'Check the Insights tab for a full breakdown!',
+    );
   }
 
   Future<void> deleteExpense(String id) async {

@@ -63,6 +63,21 @@ class AiService {
     return suggestions;
   }
 
+  Map<String, String> getAnalysis(List<Expense> expenses) {
+    final total = _analytics.getMonthlyTotal(expenses);
+    final top = _analytics.getTopCategory(expenses) ?? 'None';
+    final overspending = _analytics.getOverspendingCategory(expenses);
+    final suggestions = getSuggestions(expenses);
+
+    return {
+      'topCategory': top,
+      'warning': overspending != null 
+          ? '⚠️ Overspending detected in $overspending (>40%)!' 
+          : '✅ No major overspending detected.',
+      'advice': suggestions.isNotEmpty ? suggestions.first : 'Keep up the good work!',
+    };
+  }
+
   String getMotivationalMessage(double spent, double limit) {
     if (limit == 0) return 'Set a budget to track your progress! 🎯';
     final pct = (spent / limit) * 100;

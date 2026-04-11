@@ -6,7 +6,7 @@ class HiveService {
   static const String _expenseBoxName = 'expenses';
   static const String _budgetBoxName = 'budgets';
 
-  static Future<void> init() async {
+  Future<void> init() async {
     await Hive.initFlutter();
     Hive.registerAdapter(ExpenseAdapter());
     Hive.registerAdapter(BudgetAdapter());
