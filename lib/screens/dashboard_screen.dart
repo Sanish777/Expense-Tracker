@@ -37,9 +37,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final expProv = context.watch<ExpenseProvider>();
     final budProv = context.watch<BudgetProvider>();
+    final catProv = context.watch<CategoryProvider>();
+    
     final total = expProv.monthlyTotal;
     final topCat = expProv.topCategory;
-    final overCat = expProv.overspendingCategory;
+    
+    final overCatId = expProv.overspendingCategory;
+    final overCatTitle = overCatId != null 
+        ? (catProv.findById(overCatId)?.title ?? overCatId) 
+        : null;
 
     return Scaffold(
       body: CustomScrollView(
@@ -79,15 +85,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                           ),
                           const Spacer(),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
+                          GestureDetector(
+                            onTap: () {
+                              context.read<ExpenseProvider>().triggerWeeklySummary();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Testing local notification...', style: TextStyle(color: Colors.white)),
+                                  backgroundColor: AppTheme.accent,
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.notifications_outlined,
+                                  color: Colors.white, size: 20),
                             ),
-                            child: const Icon(Icons.notifications_outlined,
-                                color: Colors.white, size: 20),
                           ),
                         ],
                       ),
@@ -213,7 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  if (overCat != null)
+                  if (overCatId != null)
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
@@ -249,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                "Let's check your Financial Insight – overspending on $overCat!",
+                                "Let's check your Financial Insight – overspending on $overCatTitle!",
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,

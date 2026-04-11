@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import '../providers/budget_provider.dart';
 import '../providers/expense_provider.dart';
 import '../providers/theme_provider.dart';
@@ -85,12 +86,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportDatabase() async {
-    final dbFile = await DatabaseService().getDatabaseFile();
-    if (await dbFile.exists()) {
-      await Share.shareXFiles(
-        [XFile(dbFile.path)],
-        text: 'SpendWise AI Database Export (${DateTime.now().toLocal()})',
-      );
+    try {
+      final dbFile = await DatabaseService().getDatabaseFile();
+      if (await dbFile.exists()) {
+        final tempDir = await getTemporaryDirectory();
+        final exportPath = '${tempDir.path}/wise_expense_export_${DateTime.now().millisecondsSinceEpoch}.db';
+        final exportFile = await dbFile.copy(exportPath);
+
+        final box = context.findRenderObject() as RenderBox?;
+        await Share.shareXFiles(
+          [XFile(exportFile.path)],
+          text: 'SpendWise AI Database Export',
+          sharePositionOrigin: box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+        );
+      } else {
+        if (mounted) _showToast('Database file not found', isError: true);
+      }
+    } catch (e) {
+      if (mounted) _showToast('Export failed: $e', isError: true);
     }
   }
 
