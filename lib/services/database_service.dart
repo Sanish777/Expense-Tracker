@@ -196,6 +196,21 @@ class DatabaseService {
     );
   }
 
+  Future<void> insertExpenses(List<Expense> expenses) async {
+    if (expenses.isEmpty) return;
+
+    final db = await database;
+    final batch = db.batch();
+    for (final expense in expenses) {
+      batch.insert(
+        'expenses',
+        expense.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
   Future<List<Expense>> getExpenses() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('expenses', orderBy: 'date DESC');

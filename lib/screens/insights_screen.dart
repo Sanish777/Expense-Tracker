@@ -19,10 +19,14 @@ class InsightsScreen extends StatelessWidget {
     final habits = expProv.habits;
     final weekly = expProv.weeklySummary;
 
+    final canPop = Navigator.canPop(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Insights'),
         automaticallyImplyLeading: false,
+        leading: canPop
+            ? const BackButton()
+            : null,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),

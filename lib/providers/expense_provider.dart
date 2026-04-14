@@ -128,6 +128,51 @@ class ExpenseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addExpenses({
+    required List<Expense> expenses,
+    Budget? budget,
+  }) async {
+    if (expenses.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    await _db.insertExpenses(expenses);
+    await _load();
+    _isLoading = false;
+
+    if (budget != null) {
+      final newTotal = _analytics.getMonthlyTotal(_expenses);
+      final dailyTotal = _analytics.getDailyTotal(_expenses);
+
+      if (budget.dailyLimit > 0 && dailyTotal > budget.dailyLimit) {
+        await NotificationService.showBudgetAlert(
+          title: 'Daily Limit Exceeded! ⚠️',
+          body: "You've spent Rs. ${dailyTotal.toStringAsFixed(0)} today, "
+              "exceeding your Rs. ${budget.dailyLimit.toStringAsFixed(0)} daily limit.",
+        );
+      }
+
+      if (budget.monthlyLimit > 0) {
+        if (newTotal > budget.monthlyLimit) {
+          await NotificationService.showBudgetAlert(
+            title: 'Monthly Budget Exceeded! 🚨',
+            body: "You've spent Rs. ${newTotal.toStringAsFixed(0)} – "
+                "over your Rs. ${budget.monthlyLimit.toStringAsFixed(0)} limit.",
+          );
+        } else if (newTotal > budget.monthlyLimit * 0.8) {
+          await NotificationService.showBudgetAlert(
+            title: 'Monthly Budget Warning ⚠️',
+            body: '80% of your monthly budget used. '
+                'Only Rs. ${(budget.monthlyLimit - newTotal).toStringAsFixed(0)} left.',
+          );
+        }
+      }
+    }
+
+    notifyListeners();
+  }
+
   Future<void> triggerWeeklySummary() async {
     final summary = _analytics.getWeeklySummary(_expenses);
     final total = summary.fold(0.0, (sum, item) => sum + (item['total'] as double));
