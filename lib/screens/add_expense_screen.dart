@@ -42,7 +42,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         setState(() => _selectedCategory = categories.first);
       }
       if (widget.autoScan) {
-        _scanReceipt();
+        // _scanReceipt(); // Scanning disabled for now
       }
     });
   }
@@ -419,16 +419,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                         color: Colors.white, strokeWidth: 2))
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      _ScanButton(
-                                        label: 'Scan Bill',
-                                        icon: Icons.document_scanner_rounded,
-                                        onTap: _scanReceipt,
-                                      ),
-                                    ],
-                                  ),
+                                : const SizedBox.shrink(), // Scan disabled for now
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -510,7 +501,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     items: _scannedItems,
                     date: _selectedDate,
                     onDateTap: _pickDate,
-                    onScanAgain: _isScanning ? null : _scanReceipt,
+                    onScanAgain: null, // Scanning disabled for now
                     isScanning: _isScanning,
                   ).animate().fadeIn(duration: 350.ms),
 
